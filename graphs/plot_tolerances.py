@@ -65,8 +65,8 @@ def graph_residual_norms(ax, all_data, summary_data):
         ylabel="Relative 2-norm errors",
         xticklabels=[
             r"$\mathbf{R}^{-T}\mathbf{A}\mathbf{D}^2\mathbf{A}^T"
-            r"\mathbf{R}^{-1} \mathbf{q} = \mathbf{R}^{-T} \mathbf{p}$",
-            r"$\mathbf{A}\mathbf{D}^2\mathbf{A}^T \tilde{\mathbf{q}} = \mathbf{p}$",
+            r"\mathbf{R}^{-1} \tilde{\mathbf{u}} = \mathbf{R}^{-T} \mathbf{p}$",
+            r"$\mathbf{A}\mathbf{D}^2\mathbf{A}^T \mathbf{u} = \mathbf{p}$",
         ],
     )
     handles, labels = ax.get_legend_handles_labels()
