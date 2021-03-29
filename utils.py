@@ -4,13 +4,15 @@ import scipy.sparse
 rng = np.random.default_rng()
 
 
-def gaussian_sketch(w: int, m: int) -> np.ndarray:
-    return rng.random((w, m)) / np.sqrt(w)
+def gaussian_sketch(w: int, n: int) -> np.ndarray:
+    """ Generates a Gaussian sketching matrix of size w x n"""
+    return rng.random((w, n)) / np.sqrt(w)
 
 
-def sparse_sketch(w: int, m: int, s: int = 3) -> scipy.sparse.spmatrix:
+def sparse_sketch(w: int, n: int, s: int = 3) -> scipy.sparse.spmatrix:
+    """ Generates a sparse embedding matrix of size w x n with s nonzero entries per column """
     # Initialize matrix with zeros
-    mat = scipy.sparse.dok_matrix((w, m))
+    mat = scipy.sparse.dok_matrix((w, n))
     # Randomly choose s nonzero indices per column
     idx = rng.random(mat.shape).argsort(axis=0)[:s]
     # Set the entries to +1/-1
@@ -20,10 +22,12 @@ def sparse_sketch(w: int, m: int, s: int = 3) -> scipy.sparse.spmatrix:
 
 
 def random_coefficient_matrix(m: int, n: int) -> np.ndarray:
+    """ Generates a random coefficient matrix of size m x n """
     return rng.random((m, n))
 
 
 def random_sparse_coefficient_matrix(m: int, n: int, density: float = 0.01) -> scipy.sparse.spmatrix:
+    """ Generates a random sparse coefficient matrix of size m x n with rank m """
     return scipy.sparse.random(m, n, density=density) + scipy.sparse.diags(rng.random(m), shape=(m, n))
 
 
