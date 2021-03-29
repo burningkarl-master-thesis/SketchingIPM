@@ -18,7 +18,7 @@ def sparse_sketch(w: int, n: int, s: int = 3) -> scipy.sparse.spmatrix:
     # Set the entries to +1/-1
     mat[idx, np.arange(mat.shape[1])] = rng.choice([-1, 1], size=idx.shape)
     # Multiply by 1/sqrt(s)
-    return (mat / np.sqrt(s)).tocoo()
+    return (mat / np.sqrt(s)).tocsr()
 
 
 def random_coefficient_matrix(m: int, n: int) -> np.ndarray:
@@ -26,9 +26,16 @@ def random_coefficient_matrix(m: int, n: int) -> np.ndarray:
     return rng.random((m, n))
 
 
-def random_sparse_coefficient_matrix(m: int, n: int, density: float = 0.01) -> scipy.sparse.spmatrix:
+def random_sparse_coefficient_matrix(m: int, n: int, density: float) -> scipy.sparse.spmatrix:
     """ Generates a random sparse coefficient matrix of size m x n with rank m """
-    return scipy.sparse.random(m, n, density=density) + scipy.sparse.diags(rng.random(m), shape=(m, n))
+    mat = scipy.sparse.dok_matrix((m, n))
+    # One dense row
+    mat[0, :] = np.ones((1, n))
+    # Nonzero entries on the diagonals
+    mat += scipy.sparse.diags(rng.random(m), shape=(m, n))
+    # Randomly scattered nonzero entries
+    mat += scipy.sparse.random(m, n, density=density)
+    return mat.tocsr()
 
 
 if __name__ == "__main__":

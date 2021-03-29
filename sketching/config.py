@@ -14,6 +14,8 @@ class LinearSolver(enum.Enum):
 class SketchingConfig:
     m: Optional[int] = 100
     n: Optional[int] = 10000
+    nnz_factor: Optional[float] = 2
+    density: float = dataclasses.field(init=False)
     w_factor: Optional[float] = 1.5
     w: int = dataclasses.field(init=False)
     s: Optional[int] = 3
@@ -31,11 +33,15 @@ class SketchingConfig:
         """ Validates the current configuration """
         try:
             assert 1 <= self.m <= self.n
+            assert 0 <= self.nnz_factor <= self.m
             assert self.w_factor >= 1
             assert self.s >= 1
             assert self.cg_iterations >= 1
         except AssertionError as error:
             raise ValueError("Invalid value in configuration") from error
+
+        # nnz(A) = self.nnz_factor * self.n
+        self.density = self.nnz_factor / self.m
 
         # Set w according to the given w_factor
         self.w = int(self.w_factor * self.m)
