@@ -9,6 +9,7 @@ scipy = "*"
 logzero = "*"
 dacite = "*"
 wandb = "*"
+codetiming = "*"
 
 [dev-packages]
 

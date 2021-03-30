@@ -12,8 +12,9 @@ import scipy
 import scipy.sparse
 import time
 import wandb
-from logzero import logger
+from codetiming import Timer
 from config import SketchingConfig, Preconditioning
+from logzero import logger
 from utils import random_sparse_coefficient_matrix, sparse_sketch
 
 CONFIG_FILE_PARAM = "config_file"
@@ -42,26 +43,45 @@ def main(args):
             half_diag = scipy.sparse.diags(basis_partition * (1 / sqrt_mu) + non_basis_partition * sqrt_mu)
             spd_matrix = coeff_matrix * half_diag * half_diag * coeff_matrix.T
 
-            start_time = time.time()
+            sketching_timer, decomposition_timer, product_timer = Timer(), Timer(), Timer()
             if config.preconditioning is Preconditioning.NONE:
-                condition_number = np.linalg.cond(spd_matrix.toarray())
-                wandb.log({'mu': mu, 'condition_number': condition_number, 'duration': time.time() - start_time})
-                logger.info(f'Unpreconditioned {mu:.1E} {condition_number}')
-            elif config.preconditioning is Preconditioning.SKETCHING:
-                sketched_matrix = sparse_sketch(config.w, config.n, config.s) * half_diag * coeff_matrix.T
-                # logger.info(f'Sketched dimensions: {sketched_matrix.shape}')
-                q, r = np.linalg.qr(sketched_matrix.toarray())
-                preconditioned_spd_matrix = np.linalg.inv(r.T) @ spd_matrix.toarray() @ np.linalg.inv(r)
+                preconditioned_spd_matrix = spd_matrix.toarray()
+            elif config.preconditioning is Preconditioning.SKETCHING_QR:
+                with Timer(logger=None) as sketching_timer:
+                    sketched_matrix = sparse_sketch(config.w, config.n, config.s) * half_diag * coeff_matrix.T
+                with Timer(logger=None) as decomposition_timer:
+                    q, r = np.linalg.qr(sketched_matrix.toarray())
+                with Timer(logger=None) as product_timer:
+                    preconditioned_spd_matrix = np.linalg.inv(r.T) @ spd_matrix.toarray() @ np.linalg.inv(r)
+            elif config.preconditioning is Preconditioning.SKETCHING_CHOLESKY:
+                with Timer(logger=None) as sketching_timer:
+                    sketched_matrix = sparse_sketch(config.w, config.n, config.s) * half_diag * coeff_matrix.T
+                with Timer(logger=None) as decomposition_timer:
+                    cholesky_factor = np.linalg.cholesky((sketched_matrix.T * sketched_matrix).toarray())
+                with Timer(logger=None) as product_timer:
+                    preconditioned_spd_matrix = np.linalg.inv(cholesky_factor) @ spd_matrix.toarray() @ np.linalg.inv(
+                        cholesky_factor.T)
+            elif config.preconditioning is Preconditioning.FULL_QR:
+                with Timer(logger=None) as decomposition_timer:
+                    q, r = np.linalg.qr((half_diag * coeff_matrix.T).toarray())
+                with Timer(logger=None) as product_timer:
+                    preconditioned_spd_matrix = np.linalg.inv(r.T) @ spd_matrix.toarray() @ np.linalg.inv(r)
+            elif config.preconditioning is Preconditioning.FULL_CHOLESKY:
+                with Timer(logger=None) as decomposition_timer:
+                    cholesky_factor = np.linalg.cholesky(spd_matrix.toarray())
+                with Timer(logger=None) as product_timer:
+                    preconditioned_spd_matrix = np.linalg.inv(cholesky_factor) @ spd_matrix.toarray() @ np.linalg.inv(
+                        cholesky_factor.T)
+            with Timer(logger=None) as condition_number_timer:
                 condition_number = np.linalg.cond(preconditioned_spd_matrix)
-                wandb.log({'mu': mu, 'condition_number': condition_number, 'duration': time.time() - start_time})
-                logger.info(f'SkPreconditioned {mu:.1E} {condition_number}')
-            elif config.preconditioning is Preconditioning.FULL:
-                # logger.info(f'Original dimensions: {(half_diag * coeff_matrix.T).shape}')
-                q, r = np.linalg.qr((half_diag * coeff_matrix.T).toarray())
-                preconditioned_spd_matrix = np.linalg.inv(r.T) @ spd_matrix.toarray() @ np.linalg.inv(r)
-                condition_number = np.linalg.cond(preconditioned_spd_matrix)
-                wandb.log({'mu': mu, 'condition_number': condition_number, 'duration': time.time() - start_time})
-                logger.info(f'QRPreconditioned {mu:.1E} {condition_number}')
+            wandb.log({
+                'mu': mu, 'condition_number': condition_number,
+                'sketching_duration': sketching_timer.last,
+                'decomposition_duration': decomposition_timer.last,
+                'product_duration': product_timer.last,
+                'condition_number_duration': condition_number_timer.last,
+            })
+            logger.info(f'{mu:.1E} {condition_number} {sketching_timer.last}')
         run.finish()
 
 
