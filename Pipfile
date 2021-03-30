@@ -8,6 +8,7 @@ numpy = "*"
 scipy = "*"
 logzero = "*"
 dacite = "*"
+wandb = "*"
 
 [dev-packages]
 
