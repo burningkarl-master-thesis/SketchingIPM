@@ -11,14 +11,11 @@ def gaussian_sketch(w: int, n: int) -> np.ndarray:
 
 def sparse_sketch(w: int, n: int, s: int = 3) -> scipy.sparse.spmatrix:
     """ Generates a sparse embedding matrix of size w x n with s nonzero entries per column """
-    # Initialize matrix with zeros
-    mat = scipy.sparse.dok_matrix((w, n))
-    # Randomly choose s nonzero indices per column
-    idx = rng.random(mat.shape).argsort(axis=0)[:s]
-    # Set the entries to +1/-1
-    mat[idx, np.arange(mat.shape[1])] = rng.choice([-1, 1], size=idx.shape)
-    # Multiply by 1/sqrt(s)
-    return (mat / np.sqrt(s)).tocsr()
+    data = rng.choice([-1 / np.sqrt(s), 1 / np.sqrt(s)], size=s * n)
+    row_indices = np.hstack([rng.choice(w, size=s, replace=False) for i in range(n)])
+    column_indices = np.repeat(np.arange(n), s)  # [0, 0, 0, 1, 1, 1, ..., n, n, n] for s=3
+    mat = scipy.sparse.coo_matrix((data, (row_indices, column_indices)), shape=(w, n))
+    return mat.tocsr()
 
 
 def random_coefficient_matrix(m: int, n: int) -> np.ndarray:
