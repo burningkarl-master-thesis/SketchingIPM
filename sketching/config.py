@@ -7,10 +7,9 @@ from typing import Optional
 
 class Preconditioning(enum.Enum):
     NONE = 'none'
-    SKETCHING_QR = 'sketching_qr'
-    SKETCHING_CHOLESKY = 'sketching_cholesky'
-    FULL_QR = 'full_qr'
-    FULL_CHOLESKY = 'full_cholesky'
+    QR = 'qr'
+    SPARSE_QR = 'sparse_qr'
+    CHOLESKY = 'cholesky'
 
 
 class LinearSolver(enum.Enum):
@@ -18,14 +17,15 @@ class LinearSolver(enum.Enum):
     CHOLESKY = 'cholesky'
 
 
-@dataclasses.dataclass(frozen=True)
+@dataclasses.dataclass
 class SketchingConfig:
     number_of_runs: int = 1
     m: Optional[int] = 100
     n: Optional[int] = 10000
     nnz_factor: Optional[float] = 2
     density: float = dataclasses.field(init=False)
-    preconditioning: Preconditioning = Preconditioning.SKETCHING_QR
+    use_sketching: bool = True
+    preconditioning: Preconditioning = Preconditioning.QR
     w_factor: Optional[float] = 1.5
     w: int = dataclasses.field(init=False)
     s: Optional[int] = 3

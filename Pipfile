@@ -10,6 +10,7 @@ logzero = "*"
 dacite = "*"
 wandb = "*"
 codetiming = "*"
+sparseqr = {git = "https://github.com/yig/PySPQR.git"}
 
 [dev-packages]
 
