@@ -25,21 +25,21 @@ def precondition(config: SketchingConfig, half_spd_matrix: scipy.sparse.spmatrix
     np.ndarray, typing.Any]:
     sketching_timer, decomposition_timer, product_timer = Timer(), Timer(), Timer()
 
-    if config.use_sketching and config.preconditioning is not None:
+    if config.use_sketching and config.preconditioning is not Preconditioning.NONE:
         with Timer(logger=None) as sketching_timer:
             sketched_half_spd_matrix = sparse_sketch(config.w, config.n, config.s) * half_spd_matrix
     else:
         sketched_half_spd_matrix = half_spd_matrix
 
-    spd_matrix = half_spd_matrix.T * half_spd_matrix
-    sketched_spd_matrix = sketched_half_spd_matrix.T * sketched_half_spd_matrix
-
     if config.preconditioning is Preconditioning.NONE:
-        preconditioned_spd_matrix = spd_matrix.toarray()
+        with Timer(logger=None) as product_timer:
+            spd_matrix = half_spd_matrix.T * half_spd_matrix
+            preconditioned_spd_matrix = spd_matrix.toarray()
     elif config.preconditioning is Preconditioning.QR:
         with Timer(logger=None) as decomposition_timer:
             q, r = np.linalg.qr(sketched_half_spd_matrix.toarray())
         with Timer(logger=None) as product_timer:
+            spd_matrix = half_spd_matrix.T * half_spd_matrix
             preconditioned_spd_matrix = np.linalg.inv(r.T) @ spd_matrix.toarray() @ np.linalg.inv(r)
     elif config.preconditioning is Preconditioning.SPARSE_QR:
         with Timer(logger=None) as decomposition_timer:
@@ -47,11 +47,14 @@ def precondition(config: SketchingConfig, half_spd_matrix: scipy.sparse.spmatrix
             r = r.toarray()
             p = sparseqr.permutation_vector_to_matrix(e)
         with Timer(logger=None) as product_timer:
+            spd_matrix = half_spd_matrix.T * half_spd_matrix
             preconditioned_spd_matrix = np.linalg.inv(r.T) @ (p.T * spd_matrix * p).toarray() @ np.linalg.inv(r)
     elif config.preconditioning is Preconditioning.CHOLESKY:
         with Timer(logger=None) as decomposition_timer:
+            sketched_spd_matrix = sketched_half_spd_matrix.T * sketched_half_spd_matrix
             cholesky_factor = np.linalg.cholesky(sketched_spd_matrix.toarray())
         with Timer(logger=None) as product_timer:
+            spd_matrix = half_spd_matrix.T * half_spd_matrix
             preconditioned_spd_matrix = np.linalg.inv(cholesky_factor) @ spd_matrix.toarray() @ np.linalg.inv(
                 cholesky_factor.T)
 
@@ -80,7 +83,7 @@ def main(args):
         basis_partition = np.random.choice([1, 0], p=[basis_probability, 1 - basis_probability], size=config.n)
         non_basis_partition = np.ones(config.n) - basis_partition
 
-        for mu in np.logspace(-3, 0, 10):
+        for mu in np.logspace(0, -12, 10):
             sqrt_mu = np.sqrt(mu)
             half_diag = scipy.sparse.diags(basis_partition * (1 / sqrt_mu) + non_basis_partition * sqrt_mu)
             half_spd_matrix = half_diag * coeff_matrix.T
@@ -98,7 +101,7 @@ def main(args):
                 'condition_number_duration': condition_number_timer.last,
             })
 
-            logger.info(f'{mu:.1E} {condition_number}')
+            logger.info(f'{mu:.1E} {condition_number:.1E}')
         run.finish()
 
 
