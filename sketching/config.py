@@ -3,18 +3,13 @@ import dataclasses
 import enum
 import itertools
 import json
-from typing import Optional, List
+import typing
 
 
 class Preconditioning(enum.Enum):
     NONE = 'none'
     QR = 'qr'
     SPARSE_QR = 'sparse_qr'
-    CHOLESKY = 'cholesky'
-
-
-class LinearSolver(enum.Enum):
-    CG_METHOD = 'cg_method'
     CHOLESKY = 'cholesky'
 
 
@@ -26,13 +21,10 @@ class SketchingConfig:
     n: int = 10000
     nnz_factor: float = 2
     density: float = dataclasses.field(init=False)
-    use_sketching: bool = True
     preconditioning: Preconditioning = Preconditioning.QR
     w_factor: float = 1.5
     w: int = dataclasses.field(init=False)
     s: int = 3
-    linear_solver: LinearSolver = LinearSolver.CG_METHOD
-    cg_iterations: int = 100
 
     @classmethod
     def from_file(cls, filename: str) -> 'SketchingConfig':
@@ -49,7 +41,6 @@ class SketchingConfig:
             assert 0 <= self.nnz_factor <= self.m
             assert self.w_factor >= 1
             assert self.s >= 1
-            assert self.cg_iterations >= 1
         except AssertionError as error:
             raise ValueError("Invalid value in configuration") from error
 
@@ -62,7 +53,7 @@ class SketchingConfig:
 
 # The following construction assumes that all fields of SketchingConfig have a default, not a default_factory
 list_config_fields = [
-    (field.name, List[field.type],
+    (field.name, typing.List[field.type],
      dataclasses.field(
          default_factory=lambda default=field.default: [default],
          init=True,
@@ -74,7 +65,7 @@ list_config_fields = [
     for field in dataclasses.fields(SketchingConfig)
     if field.init
 ]
-SketchingConfigProductSuper = dataclasses.make_dataclass('SketchingConfigProductSuper', list_config_fields)
+SketchingConfigProductSuper = dataclasses.make_dataclass('SketchingConfigProductSuper', list_config_fields, frozen=True)
 
 
 class SketchingConfigProduct(SketchingConfigProductSuper):
@@ -90,5 +81,5 @@ class SketchingConfigProduct(SketchingConfigProductSuper):
     def configs(self):
         """ Generates a SketchingConfig for each possible combination of the given parameter values """
         keys, values = zip(*dataclasses.asdict(self).items())
-        for value_combinations in itertools.product(*values):
-            yield SketchingConfig(**dict(zip(keys, value_combinations)))
+        for values_combination in itertools.product(*values):
+            yield SketchingConfig(**dict(zip(keys, values_combination)))

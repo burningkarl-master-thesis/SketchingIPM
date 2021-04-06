@@ -25,11 +25,8 @@ def precondition(config: SketchingConfig, half_spd_matrix: scipy.sparse.spmatrix
     np.ndarray, typing.Any]:
     sketching_timer, decomposition_timer, product_timer = Timer(), Timer(), Timer()
 
-    if config.use_sketching and config.preconditioning is not Preconditioning.NONE:
-        with Timer(logger=None) as sketching_timer:
-            sketched_half_spd_matrix = sparse_sketch(config.w, config.n, config.s) * half_spd_matrix
-    else:
-        sketched_half_spd_matrix = half_spd_matrix
+    with Timer(logger=None) as sketching_timer:
+        sketched_half_spd_matrix = sparse_sketch(config.w, config.n, config.s) * half_spd_matrix
 
     if config.preconditioning is Preconditioning.NONE:
         with Timer(logger=None) as product_timer:
@@ -89,7 +86,12 @@ def main(args):
                 half_diag = scipy.sparse.diags(basis_partition * (1 / sqrt_mu) + non_basis_partition * sqrt_mu)
                 half_spd_matrix = half_diag * coeff_matrix.T
 
-                preconditioned_spd_matrix, timers = precondition(config, half_spd_matrix)
+                try:
+                    preconditioned_spd_matrix, timers = precondition(config, half_spd_matrix)
+                except np.linalg.LinAlgError as error:
+                    logger.error(error)
+                    break
+
                 with Timer(logger=None) as condition_number_timer:
                     condition_number = np.linalg.cond(preconditioned_spd_matrix)
 
