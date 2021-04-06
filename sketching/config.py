@@ -35,6 +35,9 @@ class ProblemConfig(DaciteFromFile):
     n: int = 10000
     nnz_factor: float = 2
     density: float = dataclasses.field(init=False)
+    mu_min_exponent: float = -12
+    mu_max_exponent: float = 0
+    mu_steps: int = 10
 
     def __post_init__(self):
         """ Validates the current configuration """
@@ -53,7 +56,6 @@ class SketchingConfig(DaciteFromFile):
     """ Stores all configuration options for the sketching experiments """
 
     w_factor: float = 1.5
-    w: int = dataclasses.field(init=False)
     s: int = 3
 
     def __post_init__(self):
@@ -63,9 +65,6 @@ class SketchingConfig(DaciteFromFile):
             assert self.s >= 1
         except AssertionError as error:
             raise ValueError("Invalid value in configuration") from error
-
-        # Set w according to the given w_factor
-        object.__setattr__(self, "w", int(self.w_factor * self.m))
 
 
 @dataclasses.dataclass(frozen=True)
@@ -120,6 +119,7 @@ class ExperimentConfig(DaciteFromFile):
     """ Stores all configuration options concerning all experiments """
 
     number_of_runs: int = 1
+    group: str = ""
     problem_config_product: ProblemConfigProduct = ProblemConfigProduct()
     sketching_config_product: SketchingConfigProduct = SketchingConfigProduct()
     preconditioning_config_product: PreconditioningConfigProduct = (
