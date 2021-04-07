@@ -102,7 +102,7 @@ def make_product_class(cls: typing.Type[T]):
         cls_name=cls.__name__ + "Product",
         fields=list_config_fields,
         bases=(DaciteFromFile,),
-        namespace={"__module__": __name__, configs.__name__: configs},
+        namespace={"configs": configs},
         frozen=True,
     )
 
