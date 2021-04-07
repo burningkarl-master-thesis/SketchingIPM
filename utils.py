@@ -1,6 +1,5 @@
 import numpy as np
 import scipy.sparse
-from functools import partial
 
 default_rng = np.random.default_rng()
 

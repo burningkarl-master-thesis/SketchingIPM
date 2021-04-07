@@ -19,7 +19,7 @@ from logzero import logger
 from typing import Tuple
 
 from config import (
-    ExperimentConfig,
+    ConditionNumberExperimentConfig,
     ProblemConfig,
     SketchingConfig,
     PreconditioningConfig,
@@ -105,7 +105,7 @@ def precondition(
 
 
 def run_experiment(
-    experiment_config: ExperimentConfig,
+    experiment_config: ConditionNumberExperimentConfig,
     problem_config: ProblemConfig,
     sketching_configs: typing.List[SketchingConfig],
     preconditioning_configs: typing.List[PreconditioningConfig],
@@ -194,9 +194,9 @@ def main(args):
     logger.info(args)
     config_file = vars(args)[CONFIG_FILE_PARAM]
     if config_file is None:
-        config = ExperimentConfig()
+        config = ConditionNumberExperimentConfig()
     else:
-        config = ExperimentConfig.from_file(config_file)
+        config = ConditionNumberExperimentConfig.from_file(config_file)
     logger.info(config)
 
     for i in range(config.number_of_runs):

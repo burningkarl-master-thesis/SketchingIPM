@@ -117,7 +117,36 @@ PreconditioningConfigProduct = make_product_class(PreconditioningConfig)
 
 
 @dataclasses.dataclass(frozen=True)
-class ExperimentConfig(DaciteFromFile):
+class ConditionNumberExperimentConfig(DaciteFromFile):
+    """ Stores all configuration options concerning all experiments """
+
+    number_of_runs: int = 1
+    group: str = ""
+    problem_config_product: ProblemConfigProduct = ProblemConfigProduct()
+    sketching_config_product: SketchingConfigProduct = SketchingConfigProduct()
+    preconditioning_config_product: PreconditioningConfigProduct = (
+        PreconditioningConfigProduct()
+    )
+
+    def __post_init__(self):
+        """ Validates the current configuration """
+        try:
+            assert self.number_of_runs >= 1
+        except AssertionError as error:
+            raise ValueError("Invalid value in configuration") from error
+
+    def problem_configs(self) -> typing.List[ProblemConfig]:
+        return list(self.problem_config_product.configs())
+
+    def sketching_configs(self) -> typing.List[SketchingConfig]:
+        return list(self.sketching_config_product.configs())
+
+    def preconditioning_configs(self) -> typing.List[PreconditioningConfig]:
+        return list(self.preconditioning_config_product.configs())
+
+
+@dataclasses.dataclass(frozen=True)
+class IpmExperimentConfig(DaciteFromFile):
     """ Stores all configuration options concerning all experiments """
 
     number_of_runs: int = 1
