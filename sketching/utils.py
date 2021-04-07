@@ -1,5 +1,6 @@
 import numpy as np
 import scipy.sparse
+from functools import partial
 
 rng = np.random.default_rng()
 
@@ -33,9 +34,11 @@ def random_sparse_coefficient_matrix(
     # One dense row
     mat[0, :] = np.ones((1, n))
     # Nonzero entries on the diagonals
-    mat += scipy.sparse.diags(rng.random(m), shape=(m, n))
+    mat += scipy.sparse.diags(rng.normal(size=m), shape=(m, n))
     # Randomly scattered nonzero entries
-    mat += scipy.sparse.random(m, n, density=density)
+    mat += scipy.sparse.random(
+        m, n, density=density, data_rvs=partial(rng.normal, 0, 1)
+    )
     return mat.tocsr()
 
 
