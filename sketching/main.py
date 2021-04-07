@@ -88,10 +88,7 @@ def precondition(
                 @ np.linalg.inv(cholesky_factor.T)
             )
 
-    return preconditioned_spd_matrix, (
-        decomposition_timer,
-        product_timer,
-    )
+    return preconditioned_spd_matrix, (decomposition_timer, product_timer)
 
 
 def main(args):
@@ -175,14 +172,29 @@ def main(args):
                         with Timer(logger=None) as condition_number_timer:
                             condition_number = np.linalg.cond(preconditioned_spd_matrix)
 
+                        with Timer(logger=None) as rank_timer:
+                            half_spd_rank = np.linalg.matrix_rank(
+                                half_spd_matrix.toarray()
+                            )
+                            sketched_half_spd_rank = np.linalg.matrix_rank(
+                                sketched_half_spd_matrix.toarray()
+                            )
+                            preconditioned_spd_rank = np.linalg.matrix_rank(
+                                preconditioned_spd_matrix
+                            )
+
                         decomposition_timer, product_timer = timers
                         statistics = {
                             "mu": mu,
                             "condition_number": condition_number,
+                            "half_spd_rank": half_spd_rank,
+                            "sketched_half_spd_rank": sketched_half_spd_rank,
+                            "preconditioned_spd_rank": preconditioned_spd_rank,
                             "sketching_duration": sketching_timer.last,
                             "decomposition_duration": decomposition_timer.last,
                             "product_duration": product_timer.last,
                             "condition_number_duration": condition_number_timer.last,
+                            "rank_duration": rank_timer.last,
                         }
                         wandb.log(statistics)
                         logger.info(f"{statistics=}")
