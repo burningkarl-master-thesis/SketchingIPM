@@ -31,11 +31,14 @@ CONFIG_FILE_PARAM = "config_file"
 
 
 def generate_problem_instance(
-    problem_config: ProblemConfig,
+    problem_config: ProblemConfig, rng: np.random.Generator
 ) -> Tuple[scipy.sparse.spmatrix, np.ndarray]:
     """ Generates a problem instance from the given problem configuration """
     coeff_matrix = random_sparse_coefficient_matrix(
-        problem_config.m, problem_config.n, density=problem_config.density
+        problem_config.m,
+        problem_config.n,
+        nnz_per_column=problem_config.nnz_per_column,
+        rng=rng,
     )
     basis_partition = np.zeros(problem_config.n)
     basis_partition[
@@ -49,7 +52,8 @@ def precondition(
     half_spd_matrix: scipy.sparse.spmatrix,
     sketched_half_spd_matrix: scipy.sparse.spmatrix,
 ) -> typing.Tuple[np.ndarray, typing.Dict[str, typing.Any]]:
-    decomposition_timer, product_timer = Timer(), Timer()
+    decomposition_timer = Timer()
+    decomposition_timer.last = 0
 
     if config.preconditioning is Preconditioning.NONE:
         with Timer(logger=None) as product_timer:
@@ -107,7 +111,9 @@ def run_experiment(
     preconditioning_configs: typing.List[PreconditioningConfig],
 ) -> None:
     logger.info(f"Starting sketching experiment: {problem_config=}")
-    coeff_matrix, basis_partition = generate_problem_instance(problem_config)
+    coeff_matrix, basis_partition = generate_problem_instance(
+        problem_config, rng=problem_config.rng
+    )
 
     sketched_matrices = collections.defaultdict(dict)
     sketching_metrics = collections.defaultdict(dict)

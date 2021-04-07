@@ -3,6 +3,7 @@ import dataclasses
 import enum
 import itertools
 import json
+import numpy as np
 import typing
 
 
@@ -33,8 +34,9 @@ class ProblemConfig(DaciteFromFile):
 
     m: int = 100
     n: int = 10000
-    nnz_factor: float = 2
-    density: float = dataclasses.field(init=False)
+    nnz_per_column: int = 2
+    seed: int = 123456
+    rng: np.random.Generator = dataclasses.field(init=False)
     mu_min_exponent: float = -12
     mu_max_exponent: float = 0
     mu_steps: int = 10
@@ -43,12 +45,12 @@ class ProblemConfig(DaciteFromFile):
         """ Validates the current configuration """
         try:
             assert 1 <= self.m <= self.n
-            assert 0 <= self.nnz_factor <= self.m
+            assert 0 <= self.nnz_per_column <= self.m
+            assert self.mu_steps >= 1
         except AssertionError as error:
             raise ValueError("Invalid value in configuration") from error
 
-        # nnz(A) = self.nnz_factor * self.n
-        object.__setattr__(self, "density", self.nnz_factor / self.m)
+        object.__setattr__(self, "rng", np.random.default_rng(self.seed))
 
 
 @dataclasses.dataclass(frozen=True)
