@@ -8,7 +8,6 @@ __license__ = "GPLv3"
 import argparse
 import collections
 import dataclasses
-import multiprocessing
 import numpy as np
 import scipy
 import scipy.sparse
@@ -150,9 +149,7 @@ def run_experiment(
                     sketched_half_spd_matrix.toarray()
                 ),
             }
-            logger.debug(
-                f"Prepared sketching matrices for {sketching_config=} and {mu=}"
-            )
+            logger.debug(f"Prepared sketching matrices for {sketching_config=} and {mu=}")
 
     for sketching_config in sketching_configs:
         for preconditioning_config in preconditioning_configs:
@@ -200,21 +197,14 @@ def main(args):
         config = ExperimentConfig.from_file(config_file)
     logger.info(config)
 
-    multiprocessing.set_start_method("spawn")
-    with multiprocessing.Pool(processes=6) as pool:
-        for i in range(config.number_of_runs):
-            for problem_config in config.problem_configs():
-                pool.apply_async(
-                    run_experiment,
-                    kwds={
-                        "experiment_config": config,
-                        "problem_config": problem_config,
-                        "sketching_configs": config.sketching_configs(),
-                        "preconditioning_configs": config.preconditioning_configs(),
-                    },
-                )
-        pool.close()
-        pool.join()
+    for i in range(config.number_of_runs):
+        for problem_config in config.problem_configs():
+            run_experiment(
+                experiment_config=config,
+                problem_config=problem_config,
+                sketching_configs=config.sketching_configs(),
+                preconditioning_configs=config.preconditioning_configs(),
+            )
 
 
 if __name__ == "__main__":
