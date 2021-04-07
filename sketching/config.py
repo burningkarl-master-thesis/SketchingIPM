@@ -92,7 +92,7 @@ def make_product_class(cls: typing.Type[T]):
         if field.init
     ]
 
-    def configs(self) -> T:
+    def configs(self) -> typing.Iterator[T]:
         """ Generates a config object for each possible combination of the given parameter values """
         keys, values = zip(*dataclasses.asdict(self).items())
         for values_combination in itertools.product(*values):
@@ -133,11 +133,11 @@ class ExperimentConfig(DaciteFromFile):
         except AssertionError as error:
             raise ValueError("Invalid value in configuration") from error
 
-    def problem_configs(self) -> typing.Iterator[ProblemConfig]:
-        yield from self.problem_config_product.configs()
+    def problem_configs(self) -> typing.List[ProblemConfig]:
+        return list(self.problem_config_product.configs())
 
-    def sketching_configs(self) -> typing.Iterator[SketchingConfig]:
-        yield from self.sketching_config_product.configs()
+    def sketching_configs(self) -> typing.List[SketchingConfig]:
+        return list(self.sketching_config_product.configs())
 
-    def preconditioning_configs(self) -> typing.Iterator[PreconditioningConfig]:
-        yield from self.preconditioning_config_product.configs()
+    def preconditioning_configs(self) -> typing.List[PreconditioningConfig]:
+        return list(self.preconditioning_config_product.configs())

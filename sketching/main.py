@@ -21,6 +21,7 @@ from typing import Tuple
 from config import (
     ExperimentConfig,
     ProblemConfig,
+    SketchingConfig,
     PreconditioningConfig,
     Preconditioning,
 )
@@ -51,7 +52,7 @@ def precondition(
     config: PreconditioningConfig,
     half_spd_matrix: scipy.sparse.spmatrix,
     sketched_half_spd_matrix: scipy.sparse.spmatrix,
-) -> typing.Tuple[np.ndarray, typing.Any]:
+) -> typing.Tuple[np.ndarray, typing.Dict[str, typing.Any]]:
     decomposition_timer, product_timer = Timer(), Timer()
 
     if config.preconditioning is Preconditioning.NONE:
@@ -88,11 +89,106 @@ def precondition(
                 @ np.linalg.inv(cholesky_factor.T)
             )
 
-    return preconditioned_spd_matrix, (decomposition_timer, product_timer)
+    with Timer(logger=None) as condition_number_timer:
+        condition_number = np.linalg.cond(preconditioned_spd_matrix)
+
+    return (
+        preconditioned_spd_matrix,
+        {
+            "condition_number": condition_number,
+            "preconditioned_spd_rank": np.linalg.matrix_rank(preconditioned_spd_matrix),
+            "condition_number_duration": condition_number_timer.last,
+            "decomposition_duration": decomposition_timer.last,
+            "product_duration": product_timer.last,
+        },
+    )
+
+
+def run_experiment(
+    experiment_config: ExperimentConfig,
+    problem_config: ProblemConfig,
+    sketching_configs: typing.List[SketchingConfig],
+    preconditioning_configs: typing.List[PreconditioningConfig],
+) -> None:
+    logger.info(f"Starting sketching experiment: {experiment_config=}")
+    (coeff_matrix, basis_partition) = generate_problem_instance(problem_config)
+    non_basis_partition = np.ones(problem_config.n) - basis_partition
+
+    sketched_matrices = collections.defaultdict(dict)
+    sketching_metrics = collections.defaultdict(dict)
+    for mu in np.logspace(
+        problem_config.mu_max_exponent,
+        problem_config.mu_min_exponent,
+        problem_config.mu_steps,
+    ):
+        sqrt_mu = np.sqrt(mu)
+        half_diag = scipy.sparse.diags(
+            basis_partition * (1 / sqrt_mu) + non_basis_partition * sqrt_mu
+        )
+        half_spd_matrix = half_diag * coeff_matrix.T
+
+        for sketching_config in sketching_configs:
+            with Timer(logger=None) as sketching_timer:
+                sketched_half_spd_matrix = (
+                    sparse_sketch(
+                        int(sketching_config.w_factor * problem_config.m),
+                        problem_config.n,
+                        sketching_config.s,
+                    )
+                    * half_spd_matrix
+                )
+
+            sketched_matrices[sketching_config][mu] = {
+                "half_spd_matrix": half_spd_matrix,
+                "sketched_half_spd_matrix": sketched_half_spd_matrix,
+            }
+            sketching_metrics[sketching_config][mu] = {
+                "sketching_duration": sketching_timer.last,
+                "half_spd_rank": np.linalg.matrix_rank(half_spd_matrix.toarray()),
+                "sketched_half_spd_rank": np.linalg.matrix_rank(
+                    sketched_half_spd_matrix.toarray()
+                ),
+            }
+            logger.debug(f"Prepared sketching matrices for {sketching_config=} and {mu=}")
+
+    for sketching_config in sketching_configs:
+        for preconditioning_config in preconditioning_configs:
+            chained_configs = dict(
+                collections.ChainMap(
+                    dataclasses.asdict(problem_config),
+                    dataclasses.asdict(sketching_config),
+                    dataclasses.asdict(preconditioning_config),
+                )
+            )
+            logger.info(chained_configs)
+            run = wandb.init(
+                project="sketching-ipm-condition-number",
+                group=experiment_config.group,
+                config=chained_configs,
+                reinit=True,
+            )
+
+            for mu, instance in sketched_matrices[sketching_config].items():
+                try:
+                    preconditioned_spd_matrix, preconditioning_metrics = precondition(
+                        preconditioning_config, **instance
+                    )
+                except np.linalg.LinAlgError as error:
+                    logger.error(error)
+                    continue
+
+                statistics = {
+                    "mu": mu,
+                    **sketching_metrics[sketching_config][mu],
+                    **preconditioning_metrics,
+                }
+                logger.info(f"{statistics=}")
+                wandb.log(statistics)
+            run.finish()
 
 
 def main(args):
-    logger.info("Starting sketching experiment")
+    logger.info("Reading config files")
     logger.info(args)
     config_file = vars(args)[CONFIG_FILE_PARAM]
     if config_file is None:
@@ -103,103 +199,12 @@ def main(args):
 
     for i in range(config.number_of_runs):
         for problem_config in config.problem_configs():
-            (coeff_matrix, basis_partition) = generate_problem_instance(problem_config)
-            non_basis_partition = np.ones(problem_config.n) - basis_partition
-
-            preconditioning_instances = collections.defaultdict(dict)
-            for mu in np.logspace(
-                problem_config.mu_max_exponent,
-                problem_config.mu_min_exponent,
-                problem_config.mu_steps,
-            ):
-                sqrt_mu = np.sqrt(mu)
-                half_diag = scipy.sparse.diags(
-                    basis_partition * (1 / sqrt_mu) + non_basis_partition * sqrt_mu
-                )
-                half_spd_matrix = half_diag * coeff_matrix.T
-
-                for sketching_config in config.sketching_configs():
-                    with Timer(logger=None) as sketching_timer:
-                        sketched_half_spd_matrix = (
-                            sparse_sketch(
-                                int(sketching_config.w_factor * problem_config.m),
-                                problem_config.n,
-                                sketching_config.s,
-                            )
-                            * half_spd_matrix
-                        )
-
-                    half_spd_rank = np.linalg.matrix_rank(half_spd_matrix.toarray())
-                    sketched_half_spd_rank = np.linalg.matrix_rank(
-                        sketched_half_spd_matrix.toarray()
-                    )
-
-                    preconditioning_instances[sketching_config][mu] = (
-                        half_spd_matrix,
-                        sketched_half_spd_matrix,
-                        sketching_timer,
-                        half_spd_rank,
-                        sketched_half_spd_rank
-                    )
-
-            for sketching_config in preconditioning_instances:
-                for preconditioning_config in config.preconditioning_configs():
-                    chained_configs = dict(
-                        collections.ChainMap(
-                            dataclasses.asdict(problem_config),
-                            dataclasses.asdict(sketching_config),
-                            dataclasses.asdict(preconditioning_config),
-                            {"i": i},
-                        )
-                    )
-                    logger.info(chained_configs)
-                    run = wandb.init(
-                        project="sketching-ipm-condition-number",
-                        group=config.group,
-                        config=chained_configs,
-                        reinit=True,
-                    )
-
-                    for instance in preconditioning_instances[sketching_config].items():
-                        mu, (
-                            half_spd_matrix,
-                            sketched_half_spd_matrix,
-                            sketching_timer,
-                            half_spd_rank,
-                            sketched_half_spd_rank
-                        ) = instance
-                        try:
-                            preconditioned_spd_matrix, timers = precondition(
-                                preconditioning_config,
-                                half_spd_matrix,
-                                sketched_half_spd_matrix,
-                            )
-                        except np.linalg.LinAlgError as error:
-                            logger.error(error)
-                            continue
-
-                        with Timer(logger=None) as condition_number_timer:
-                            condition_number = np.linalg.cond(preconditioned_spd_matrix)
-
-                        preconditioned_spd_rank = np.linalg.matrix_rank(
-                            preconditioned_spd_matrix
-                        )
-
-                        decomposition_timer, product_timer = timers
-                        statistics = {
-                            "mu": mu,
-                            "condition_number": condition_number,
-                            "half_spd_rank": half_spd_rank,
-                            "sketched_half_spd_rank": sketched_half_spd_rank,
-                            "preconditioned_spd_rank": preconditioned_spd_rank,
-                            "sketching_duration": sketching_timer.last,
-                            "decomposition_duration": decomposition_timer.last,
-                            "product_duration": product_timer.last,
-                            "condition_number_duration": condition_number_timer.last,
-                        }
-                        wandb.log(statistics)
-                        logger.info(f"{statistics=}")
-                    run.finish()
+            run_experiment(
+                experiment_config=config,
+                problem_config=problem_config,
+                sketching_configs=config.sketching_configs(),
+                preconditioning_configs=config.preconditioning_configs(),
+            )
 
 
 if __name__ == "__main__":
