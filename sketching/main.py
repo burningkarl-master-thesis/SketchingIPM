@@ -129,10 +129,17 @@ def main(args):
                             * half_spd_matrix
                         )
 
+                    half_spd_rank = np.linalg.matrix_rank(half_spd_matrix.toarray())
+                    sketched_half_spd_rank = np.linalg.matrix_rank(
+                        sketched_half_spd_matrix.toarray()
+                    )
+
                     preconditioning_instances[sketching_config][mu] = (
                         half_spd_matrix,
                         sketched_half_spd_matrix,
                         sketching_timer,
+                        half_spd_rank,
+                        sketched_half_spd_rank
                     )
 
             for sketching_config in preconditioning_instances:
@@ -158,6 +165,8 @@ def main(args):
                             half_spd_matrix,
                             sketched_half_spd_matrix,
                             sketching_timer,
+                            half_spd_rank,
+                            sketched_half_spd_rank
                         ) = instance
                         try:
                             preconditioned_spd_matrix, timers = precondition(
@@ -172,16 +181,9 @@ def main(args):
                         with Timer(logger=None) as condition_number_timer:
                             condition_number = np.linalg.cond(preconditioned_spd_matrix)
 
-                        with Timer(logger=None) as rank_timer:
-                            half_spd_rank = np.linalg.matrix_rank(
-                                half_spd_matrix.toarray()
-                            )
-                            sketched_half_spd_rank = np.linalg.matrix_rank(
-                                sketched_half_spd_matrix.toarray()
-                            )
-                            preconditioned_spd_rank = np.linalg.matrix_rank(
-                                preconditioned_spd_matrix
-                            )
+                        preconditioned_spd_rank = np.linalg.matrix_rank(
+                            preconditioned_spd_matrix
+                        )
 
                         decomposition_timer, product_timer = timers
                         statistics = {
@@ -194,7 +196,6 @@ def main(args):
                             "decomposition_duration": decomposition_timer.last,
                             "product_duration": product_timer.last,
                             "condition_number_duration": condition_number_timer.last,
-                            "rank_duration": rank_timer.last,
                         }
                         wandb.log(statistics)
                         logger.info(f"{statistics=}")
