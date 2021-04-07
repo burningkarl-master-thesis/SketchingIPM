@@ -37,14 +37,10 @@ def generate_problem_instance(
     coeff_matrix = random_sparse_coefficient_matrix(
         problem_config.m, problem_config.n, density=problem_config.density
     )
-    basis_probability = (
-        problem_config.m / problem_config.n
-    )  # At most m elements are in a basis
-    basis_partition = np.random.choice(
-        [1, 0],
-        p=[basis_probability, 1 - basis_probability],
-        size=problem_config.n,
-    )
+    basis_partition = np.zeros(problem_config.n)
+    basis_partition[
+        rng.choice(problem_config.n, size=problem_config.m, replace=False)
+    ] = np.ones(problem_config.m)
     return coeff_matrix, basis_partition
 
 
@@ -110,9 +106,8 @@ def run_experiment(
     sketching_configs: typing.List[SketchingConfig],
     preconditioning_configs: typing.List[PreconditioningConfig],
 ) -> None:
-    logger.info(f"Starting sketching experiment: {experiment_config=}")
-    (coeff_matrix, basis_partition) = generate_problem_instance(problem_config)
-    non_basis_partition = np.ones(problem_config.n) - basis_partition
+    logger.info(f"Starting sketching experiment: {problem_config=}")
+    coeff_matrix, basis_partition = generate_problem_instance(problem_config)
 
     sketched_matrices = collections.defaultdict(dict)
     sketching_metrics = collections.defaultdict(dict)
@@ -123,7 +118,7 @@ def run_experiment(
     ):
         sqrt_mu = np.sqrt(mu)
         half_diag = scipy.sparse.diags(
-            basis_partition * (1 / sqrt_mu) + non_basis_partition * sqrt_mu
+            (basis_partition == 1) * (1 / sqrt_mu) + (basis_partition == 0) * sqrt_mu
         )
         half_spd_matrix = half_diag * coeff_matrix.T
 
@@ -145,11 +140,12 @@ def run_experiment(
             sketching_metrics[sketching_config][mu] = {
                 "sketching_duration": sketching_timer.last,
                 "half_spd_rank": np.linalg.matrix_rank(half_spd_matrix.toarray()),
-                "sketched_half_spd_rank": np.linalg.matrix_rank(
-                    sketched_half_spd_matrix.toarray()
-                ),
+                # "sketched_half_spd_rank": np.linalg.matrix_rank(
+                #     sketched_half_spd_matrix.toarray()
+                # ),
             }
-            logger.debug(f"Prepared sketching matrices for {sketching_config=} and {mu=}")
+            logger.debug(f"Sketched matrix for {sketching_config=} and {mu=}")
+    logger.debug("Finished sketching")
 
     for sketching_config in sketching_configs:
         for preconditioning_config in preconditioning_configs:
