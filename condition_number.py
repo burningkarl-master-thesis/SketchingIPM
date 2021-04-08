@@ -129,21 +129,21 @@ def run_experiment(
         half_spd_matrix = half_diag * coeff_matrix.T
 
         for sketching_config in sketching_configs:
-            with Timer(logger=None) as sketching_timer:
-                sketched_half_spd_matrix = (
-                    sparse_sketch(
-                        int(sketching_config.w_factor * problem_config.m),
-                        problem_config.n,
-                        sketching_config.s,
-                    )
-                    * half_spd_matrix
+            with Timer(logger=None) as generate_sketch_timer:
+                sketching_matrix = sparse_sketch(
+                    int(sketching_config.w_factor * problem_config.m),
+                    problem_config.n,
+                    sketching_config.s,
                 )
+            with Timer(logger=None) as sketching_timer:
+                sketched_half_spd_matrix = sketching_matrix * half_spd_matrix
 
             sketched_matrices[sketching_config][mu] = {
                 "half_spd_matrix": half_spd_matrix,
                 "sketched_half_spd_matrix": sketched_half_spd_matrix,
             }
             sketching_metrics[sketching_config][mu] = {
+                "generate_sketch_duration": generate_sketch_timer.last,
                 "sketching_duration": sketching_timer.last,
                 "half_spd_rank": np.linalg.matrix_rank(half_spd_matrix.toarray()),
                 # "sketched_half_spd_rank": np.linalg.matrix_rank(

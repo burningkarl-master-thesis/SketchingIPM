@@ -1,7 +1,22 @@
+import itertools
 import numpy as np
 import scipy.sparse
 
 default_rng = np.random.default_rng()
+
+# The random_sparse_matrix function uses a hack to improve performance. Semantically,
+#     row_indices = np.concatenate([rng.choice(m, size=s) for _ in range(n)])
+# best describes the intended result. Unfortunately, invoking rng.choice that many
+# times takes a very long time. It is much faster to run rng.choice(m, size=s * n) but
+# at the cost of possibly defining indices multiple times. This is silently ignored by
+# coo_matrix: The last entry with the same index wins. Still, it leads to columns with
+# less than s entries.
+#
+# Instead, the current implementation generates the row indices via one call to
+# rng.choice and then discards the generated row indices for the columns where these
+# are not unique. To guarantee that enough row_indices are generated even when some
+# are discarded 10% more random entries are generated. For m = 1000, s = 3 the
+# probability of a collision is 3/1000 = sC2 / m, so 10% more entries should be plenty
 
 
 def random_sparse_matrix(
@@ -9,7 +24,14 @@ def random_sparse_matrix(
 ) -> scipy.sparse.spmatrix:
     """ Generates an m x n matrix with s random entries per column taken from data """
     # For each column sample s random indices
-    row_indices = np.hstack([rng.choice(m, size=s, replace=False) for i in range(n)])
+    row_indices = rng.choice(m, size=(int(n * 1.1), s))
+    row_indices.sort()
+    row_indices = row_indices[
+        (row_indices[..., 1:] != row_indices[..., :-1]).all(axis=-1)
+    ]
+    row_indices = row_indices[:n]
+    row_indices.shape = (n * s,)
+    # This is a performance hack: Generate without replacement and discard duplicates
     # For each column index i generate i, ..., i (s times)
     # [0, 0, 0, 1, 1, 1, ..., n, n, n] for s=3
     column_indices = np.repeat(np.arange(n), s)
