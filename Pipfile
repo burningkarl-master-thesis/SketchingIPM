@@ -5,17 +5,18 @@ name = "pypi"
 
 [packages]
 numpy = "*"
-scipy = "*"
 logzero = "*"
 dacite = "*"
 wandb = "*"
 codetiming = "*"
 sparseqr = {git = "https://github.com/yig/PySPQR.git"}
+scipy = "*"
 
 [dev-packages]
 black = "*"
 line-profiler = "*"
 gprof2dot = "*"
+darker = "*"
 
 [requires]
 python_version = "3.8"
