@@ -96,6 +96,10 @@ def precondition(
         preconditioned_spd_matrix,
         {
             "condition_number": condition_number,
+            "half_spd_rank": np.linalg.matrix_rank(half_spd_matrix.toarray()),
+            "sketched_half_spd_rank": np.linalg.matrix_rank(
+                sketched_half_spd_matrix.toarray()
+            ),
             "preconditioned_spd_rank": np.linalg.matrix_rank(preconditioned_spd_matrix),
             "condition_number_duration": condition_number_timer.last,
             "decomposition_duration": decomposition_timer.last,
@@ -145,10 +149,6 @@ def run_experiment(
             sketching_metrics[sketching_config][mu] = {
                 "generate_sketch_duration": generate_sketch_timer.last,
                 "sketching_duration": sketching_timer.last,
-                "half_spd_rank": np.linalg.matrix_rank(half_spd_matrix.toarray()),
-                # "sketched_half_spd_rank": np.linalg.matrix_rank(
-                #     sketched_half_spd_matrix.toarray()
-                # ),
             }
             logger.debug(f"Sketched matrix for {sketching_config=} and {mu=}")
     logger.debug("Finished sketching")
