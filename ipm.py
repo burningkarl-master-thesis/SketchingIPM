@@ -35,8 +35,8 @@ def generate_random_ipm_instance(
     m: int, n: int, nnz_per_column: int, rng: np.random.Generator
 ):
     a = random_sparse_coefficient_matrix(m, n, nnz_per_column, rng)
-    b = a * rng.normal(size=n)
-    c = a.T * rng.normal(size=m) - rng.random(size=n)
+    b = a * rng.random(size=n)
+    c = a.T * rng.random(size=m) + rng.random(size=n)
     return a, b, c
 
 
@@ -53,7 +53,16 @@ def run_experiment(
         problem_config.nnz_per_column,
         problem_config.rng,
     )
-    result = scipy.optimize.linprog(c, A_eq=a, b_eq=b)
+    result = scipy.optimize.linprog(
+        c,
+        A_eq=a,
+        b_eq=b,
+        options={
+            "_sparse_presolve": True,
+            "presolve": False,
+            "autoscale": False,
+        },
+    )
     logger.debug(result)
 
 
