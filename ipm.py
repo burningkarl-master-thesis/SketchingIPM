@@ -36,7 +36,7 @@ def generate_random_ipm_instance(
 ):
     a = random_sparse_coefficient_matrix(m, n, nnz_per_column, rng)
     b = a * rng.random(size=n)
-    c = a.T * rng.random(size=m) + rng.random(size=n)
+    c = a.T * rng.normal(size=m) + rng.random(size=n)
     return a, b, c
 
 
@@ -59,11 +59,15 @@ def run_experiment(
         b_eq=b,
         options={
             "_sparse_presolve": True,
+            "disp": True,
             "presolve": False,
             "autoscale": False,
+            "ip": False,
+            "tol": 1e-12,
         },
     )
-    logger.debug(result)
+    # logger.debug(result)
+    logger.debug(f"{sum(np.isclose(result.x, np.zeros(problem_config.n), atol=1e-7))}")
 
 
 def main(args):

@@ -1,4 +1,3 @@
-import itertools
 import numpy as np
 import scipy.sparse
 
@@ -60,7 +59,7 @@ def gaussian_sketch(
     w: int, n: int, rng: np.random.Generator = default_rng
 ) -> np.ndarray:
     """ Generates a Gaussian sketching matrix of size w x n"""
-    return rng.random((w, n)) / np.sqrt(w)
+    return rng.normal((w, n)) / np.sqrt(w)
 
 
 def sparse_sketch(
