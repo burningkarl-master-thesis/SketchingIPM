@@ -1,11 +1,11 @@
-import dacite
 import dataclasses
 import enum
 import itertools
 import json
-import numpy as np
 import typing
 
+import dacite
+import numpy as np
 
 T = typing.TypeVar("T")
 

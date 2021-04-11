@@ -17,6 +17,7 @@ black = "*"
 line-profiler = "*"
 gprof2dot = "*"
 darker = "*"
+isort = "*"
 
 [requires]
 python_version = "3.8"

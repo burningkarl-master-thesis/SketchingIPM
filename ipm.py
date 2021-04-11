@@ -6,27 +6,24 @@ __author__ = "Karl Welzel"
 __license__ = "GPLv3"
 
 import argparse
-import collections
-import dataclasses
+import typing
+
 import numpy as np
 import scipy
-import scipy.sparse
 import scipy.optimize
-import sparseqr
-import typing
+import scipy.sparse
 import wandb
 from codetiming import Timer
 from logzero import logger
-from typing import Tuple
 
 from config import (
     IpmExperimentConfig,
+    Preconditioning,
+    PreconditioningConfig,
     ProblemConfig,
     SketchingConfig,
-    PreconditioningConfig,
-    Preconditioning,
 )
-from utils import random_sparse_coefficient_matrix, sparse_sketch
+from utils import random_sparse_coefficient_matrix
 
 CONFIG_FILE_PARAM = "config_file"
 

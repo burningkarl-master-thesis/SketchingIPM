@@ -8,22 +8,22 @@ __license__ = "GPLv3"
 import argparse
 import collections
 import dataclasses
+import typing
+
 import numpy as np
 import scipy
 import scipy.sparse
 import sparseqr
-import typing
 import wandb
 from codetiming import Timer
 from logzero import logger
-from typing import Tuple
 
 from config import (
     ConditionNumberExperimentConfig,
+    Preconditioning,
+    PreconditioningConfig,
     ProblemConfig,
     SketchingConfig,
-    PreconditioningConfig,
-    Preconditioning,
 )
 from utils import random_sparse_coefficient_matrix, sparse_sketch
 
@@ -32,7 +32,7 @@ CONFIG_FILE_PARAM = "config_file"
 
 def generate_problem_instance(
     problem_config: ProblemConfig, rng: np.random.Generator
-) -> Tuple[scipy.sparse.spmatrix, np.ndarray]:
+) -> typing.Tuple[scipy.sparse.spmatrix, np.ndarray]:
     """ Generates a problem instance from the given problem configuration """
     coeff_matrix = random_sparse_coefficient_matrix(
         problem_config.m,
