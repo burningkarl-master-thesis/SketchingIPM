@@ -170,6 +170,7 @@ def run_experiment(
                 reinit=True,
             )
 
+            condition_numbers = []
             for mu, instance in sketched_matrices[sketching_config].items():
                 try:
                     preconditioned_spd_matrix, preconditioning_metrics = precondition(
@@ -186,6 +187,9 @@ def run_experiment(
                 }
                 logger.info(f"{statistics=}")
                 wandb.log(statistics)
+                condition_numbers.append(preconditioning_metrics["condition_number"])
+
+            run.summary["condition_number"] = np.median(condition_numbers)
             run.finish()
 
 
