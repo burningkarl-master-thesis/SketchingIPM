@@ -9,9 +9,7 @@ import argparse
 import typing
 
 import numpy as np
-import scipy
 import scipy.optimize
-import scipy.sparse
 import wandb
 from codetiming import Timer
 from logzero import logger
@@ -56,11 +54,22 @@ def run_experiment(
         b_eq=b,
         options={
             "_sparse_presolve": True,
+            "sparse": True,
+            "cholesky": True,
+            "iterative": True,
+            "linear_operators": True,
+            "sym_pos": True,
             "disp": True,
             "presolve": False,
             "autoscale": False,
-            "ip": False,
-            "tol": 1e-12,
+            "pc": True,
+            "ip": True,
+            "tol": 1e-8,
+            "maxiter": 1000,
+            "preconditioning_method": "sketching",
+            "sketching_factor": 2,
+            "sketching_sparsity": 3,
+            "triangular_solve": False,
         },
     )
     # logger.debug(result)
