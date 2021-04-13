@@ -6,6 +6,8 @@ __author__ = "Karl Welzel"
 __license__ = "GPLv3"
 
 import argparse
+import collections
+import dataclasses
 import typing
 
 import numpy as np
@@ -38,8 +40,8 @@ def generate_random_ipm_instance(
 def run_experiment(
     experiment_config: IpmExperimentConfig,
     problem_config: ProblemConfig,
-    sketching_configs: typing.List[SketchingConfig],
-    preconditioning_configs: typing.List[PreconditioningConfig],
+    sketching_config: SketchingConfig,
+    preconditioning_config: PreconditioningConfig,
 ) -> None:
     logger.info(f"Starting IPM experiment: {problem_config=}")
     a, b, c = generate_random_ipm_instance(
@@ -48,6 +50,28 @@ def run_experiment(
         problem_config.nnz_per_column,
         problem_config.rng,
     )
+
+    if preconditioning_config.preconditioning not in [
+        Preconditioning.NONE,
+        Preconditioning.QR,
+    ]:
+        raise ValueError("Not iplemented yet!")
+
+    chained_configs = dict(
+        collections.ChainMap(
+            dataclasses.asdict(problem_config),
+            dataclasses.asdict(sketching_config),
+            dataclasses.asdict(preconditioning_config),
+        )
+    )
+    logger.info(chained_configs)
+    run = wandb.init(
+        project="sketching-ipm-condition-number",
+        group=experiment_config.group,
+        config=chained_configs,
+        reinit=True,
+    )
+
     result = scipy.optimize.linprog(
         c,
         A_eq=a,
@@ -66,14 +90,18 @@ def run_experiment(
             "ip": True,
             "tol": 1e-8,
             "maxiter": 1000,
-            "preconditioning_method": "sketching",
-            "sketching_factor": 2,
-            "sketching_sparsity": 3,
+            "preconditioning_method": "none"
+            if preconditioning_config.preconditioning is Preconditioning.NONE
+            else "sketching",
+            "sketching_factor": sketching_config.w_factor,
+            "sketching_sparsity": sketching_config.s,
             "triangular_solve": False,
         },
     )
     # logger.debug(result)
     logger.debug(f"{sum(np.isclose(result.x, np.zeros(problem_config.n), atol=1e-7))}")
+
+    run.finish()
 
 
 def main(args):
@@ -88,12 +116,14 @@ def main(args):
 
     for i in range(config.number_of_runs):
         for problem_config in config.problem_configs():
-            run_experiment(
-                experiment_config=config,
-                problem_config=problem_config,
-                sketching_configs=config.sketching_configs(),
-                preconditioning_configs=config.preconditioning_configs(),
-            )
+            for sketching_config in config.sketching_configs():
+                for preconditioning_config in config.preconditioning_configs():
+                    run_experiment(
+                        experiment_config=config,
+                        problem_config=problem_config,
+                        sketching_config=sketching_config,
+                        preconditioning_config=preconditioning_config,
+                    )
 
 
 if __name__ == "__main__":
