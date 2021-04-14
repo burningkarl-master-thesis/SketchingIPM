@@ -8,6 +8,7 @@ __license__ = "GPLv3"
 import argparse
 import collections
 import dataclasses
+import logging
 import typing
 
 import numpy as np
@@ -124,6 +125,8 @@ def main(args):
     else:
         config = IpmExperimentConfig.from_file(config_file)
     logger.info(config)
+
+    logger.setLevel(logging.INFO)
 
     for i in range(config.number_of_runs):
         for problem_config in config.problem_configs():
