@@ -61,7 +61,7 @@ def precondition(
             preconditioned_spd_matrix = spd_matrix.toarray()
     elif config.preconditioning is Preconditioning.QR:
         with Timer(logger=None) as decomposition_timer:
-            q, r = np.linalg.qr(sketched_half_spd_matrix.toarray())
+            r = np.linalg.qr(sketched_half_spd_matrix.toarray(), mode="r")
         with Timer(logger=None) as product_timer:
             spd_matrix = half_spd_matrix.T * half_spd_matrix
             preconditioned_spd_matrix = (

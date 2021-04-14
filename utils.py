@@ -59,7 +59,7 @@ def gaussian_sketch(
     w: int, n: int, rng: np.random.Generator = default_rng
 ) -> np.ndarray:
     """ Generates a Gaussian sketching matrix of size w x n"""
-    return rng.normal((w, n)) / np.sqrt(w)
+    return rng.normal(size=(w, n)) / np.sqrt(w)
 
 
 def sparse_sketch(
@@ -75,7 +75,7 @@ def random_coefficient_matrix(
     m: int, n: int, rng: np.random.Generator = default_rng
 ) -> np.ndarray:
     """ Generates a random coefficient matrix of size m x n """
-    return rng.random((m, n))
+    return rng.random(size=(m, n))
 
 
 def random_sparse_coefficient_matrix(
