@@ -81,6 +81,8 @@ class IpmConfig(DaciteFromFile):
     iterative: bool = True
     linear_operators: bool = True
     triangular_solve: bool = True
+    solver_relative_tolerance: float = 0
+    solver_absolute_tolerance: float = 1e-10
 
     predictor_corrector: bool = True
     presolve: bool = False

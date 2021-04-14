@@ -88,6 +88,8 @@ def run_experiment(
                 "iterative": ipm_config.iterative,
                 "linear_operators": ipm_config.linear_operators,
                 "triangular_solve": ipm_config.triangular_solve,
+                "solver_rtol": ipm_config.solver_relative_tolerance,
+                "solver_atol": ipm_config.solver_absolute_tolerance,
                 "pc": ipm_config.predictor_corrector,
                 "ip": ipm_config.predictor_corrector,
                 "disp": True,
