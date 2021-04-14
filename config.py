@@ -74,6 +74,29 @@ class PreconditioningConfig(DaciteFromFile):
     preconditioning: Preconditioning = Preconditioning.QR
 
 
+@dataclasses.dataclass(frozen=True)
+class IpmConfig(DaciteFromFile):
+    sparse: bool = True
+    symmetric_positive_definite: bool = True
+    iterative: bool = True
+    linear_operators: bool = True
+    triangular_solve: bool = True
+
+    predictor_corrector: bool = True
+    presolve: bool = False
+    autoscale: bool = False
+    tolerance: float = 1e-8
+    maxiter: int = 1000
+
+    def __post_init__(self):
+        """ Validates the current configuration """
+        try:
+            assert self.tolerance > 0
+            assert self.maxiter >= 1
+        except AssertionError as error:
+            raise ValueError("Invalid value in configuration") from error
+
+
 def make_product_class(cls: typing.Type[T]):
     """ Creates a new dataclass turning all fields of type T into type List[T] """
     # The following construction assumes that all fields of cls have a default, not a default_factory
@@ -114,6 +137,7 @@ def make_product_class(cls: typing.Type[T]):
 ProblemConfigProduct = make_product_class(ProblemConfig)
 SketchingConfigProduct = make_product_class(SketchingConfig)
 PreconditioningConfigProduct = make_product_class(PreconditioningConfig)
+IpmConfigProduct = make_product_class(IpmConfig)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -156,6 +180,7 @@ class IpmExperimentConfig(DaciteFromFile):
     preconditioning_config_product: PreconditioningConfigProduct = (
         PreconditioningConfigProduct()
     )
+    ipm_config_product: IpmConfigProduct = IpmConfigProduct()
 
     def __post_init__(self):
         """ Validates the current configuration """
@@ -172,3 +197,6 @@ class IpmExperimentConfig(DaciteFromFile):
 
     def preconditioning_configs(self) -> typing.List[PreconditioningConfig]:
         return list(self.preconditioning_config_product.configs())
+
+    def ipm_configs(self) -> typing.List[IpmConfig]:
+        return list(self.ipm_config_product.configs())

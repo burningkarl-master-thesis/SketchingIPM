@@ -22,6 +22,7 @@ from config import (
     PreconditioningConfig,
     ProblemConfig,
     SketchingConfig,
+    IpmConfig,
 )
 from utils import random_sparse_coefficient_matrix
 
@@ -40,6 +41,7 @@ def generate_random_ipm_instance(
 def run_experiment(
     experiment_config: IpmExperimentConfig,
     problem_config: ProblemConfig,
+    ipm_config: IpmConfig,
     sketching_config: SketchingConfig,
     preconditioning_config: PreconditioningConfig,
 ) -> None:
@@ -62,6 +64,7 @@ def run_experiment(
             dataclasses.asdict(problem_config),
             dataclasses.asdict(sketching_config),
             dataclasses.asdict(preconditioning_config),
+            dataclasses.asdict(ipm_config),
         )
     )
     logger.info(chained_configs)
@@ -72,34 +75,40 @@ def run_experiment(
         reinit=True,
     )
 
-    result = scipy.optimize.linprog(
-        c,
-        A_eq=a,
-        b_eq=b,
-        options={
-            "_sparse_presolve": True,
-            "sparse": True,
-            "cholesky": True,
-            "iterative": True,
-            "linear_operators": True,
-            "sym_pos": True,
-            "disp": True,
-            "presolve": False,
-            "autoscale": False,
-            "pc": True,
-            "ip": True,
-            "tol": 1e-8,
-            "maxiter": 1000,
-            "preconditioning_method": "none"
-            if preconditioning_config.preconditioning is Preconditioning.NONE
-            else "sketching",
-            "sketching_factor": sketching_config.w_factor,
-            "sketching_sparsity": sketching_config.s,
-            "triangular_solve": False,
-        },
-    )
-    # logger.debug(result)
-    logger.debug(f"{sum(np.isclose(result.x, np.zeros(problem_config.n), atol=1e-7))}")
+    try:
+        result = scipy.optimize.linprog(
+            c,
+            A_eq=a,
+            b_eq=b,
+            options={
+                "_sparse_presolve": ipm_config.sparse,
+                "sparse": ipm_config.sparse,
+                "cholesky": ipm_config.symmetric_positive_definite,
+                "sym_pos": ipm_config.symmetric_positive_definite,
+                "iterative": ipm_config.iterative,
+                "linear_operators": ipm_config.linear_operators,
+                "triangular_solve": ipm_config.triangular_solve,
+                "pc": ipm_config.predictor_corrector,
+                "ip": ipm_config.predictor_corrector,
+                "disp": True,
+                "presolve": ipm_config.presolve,
+                "autoscale": ipm_config.autoscale,
+                "tol": ipm_config.tolerance,
+                "maxiter": ipm_config.maxiter,
+                "preconditioning_method": "none"
+                if preconditioning_config.preconditioning is Preconditioning.NONE
+                else "sketching",
+                "sketching_factor": sketching_config.w_factor,
+                "sketching_sparsity": sketching_config.s,
+            },
+        )
+        # logger.debug(result)
+        logger.debug(
+            f"{sum(np.isclose(result.x, np.zeros(problem_config.n), atol=1e-7))}"
+        )
+    except np.linalg.LinAlgError as e:
+        logger.error(e)
+        logger.info("This error is expected and will be ignored!")
 
     run.finish()
 
@@ -116,14 +125,16 @@ def main(args):
 
     for i in range(config.number_of_runs):
         for problem_config in config.problem_configs():
-            for sketching_config in config.sketching_configs():
-                for preconditioning_config in config.preconditioning_configs():
-                    run_experiment(
-                        experiment_config=config,
-                        problem_config=problem_config,
-                        sketching_config=sketching_config,
-                        preconditioning_config=preconditioning_config,
-                    )
+            for ipm_config in config.ipm_configs():
+                for sketching_config in config.sketching_configs():
+                    for preconditioning_config in config.preconditioning_configs():
+                        run_experiment(
+                            experiment_config=config,
+                            problem_config=problem_config,
+                            ipm_config=ipm_config,
+                            sketching_config=sketching_config,
+                            preconditioning_config=preconditioning_config,
+                        )
 
 
 if __name__ == "__main__":
