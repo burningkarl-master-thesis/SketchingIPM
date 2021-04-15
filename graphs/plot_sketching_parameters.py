@@ -135,6 +135,62 @@ def graph2(all_data, summary_data):
     logger.info("Saved sketching_parameters_2.png")
 
 
+def graph3(all_data, summary_data):
+    # Stacked histogram
+    # x-axis: w_factor -> s
+    # y-axis: condition_number_sketched
+    # Color differently depending on s
+
+    # Filter the data
+    # Restrict the step to ensure all runs are equally weighted
+    filtered_data = all_data.loc[
+        (all_data["_step"] <= 46) & (all_data["w_factor"] != 1) & (all_data["s"] != 2),
+        :,
+    ].copy()
+    filtered_data = pd.concat(
+        [
+            filtered_data.rename(
+                columns={"generate_sketch_duration": "duration"}
+            ).assign(duration_mode="generate"),
+            filtered_data.rename(columns={"sketching_duration": "duration"}).assign(
+                duration_mode="multiply"
+            ),
+            # filtered_data.rename(columns={"decomposition_duration": "duration"}).assign(
+            #     duration_mode="decompose"
+            # ),
+            # filtered_data.rename(columns={"product_duration": "duration"}).assign(
+            #     duration_mode="invert"
+            # ),
+        ]
+    )
+
+    facet_grid = sns.catplot(
+        data=filtered_data,
+        kind="bar",
+        x="w_factor",
+        hue="s",
+        col="duration_mode",
+        y="duration",
+        ci="sd",
+    )
+    # facet_grid.set(
+    #     title="Sketching duration",
+    #     xlabel="$w/m$",
+    #     ylabel=r"Time [s]",
+    # )
+
+    # rename_legend_labels(
+    #     facet_grid=facet_grid,
+    #     title="Preconditioning",
+    #     new_labels=["$s = 3$", "$s = 4$"],
+    # )
+
+    facet_grid.savefig("sketching_parameters_3.pgf")
+    logger.info("Saved sketching_parameters_3.pgf")
+    facet_grid.savefig("sketching_parameters_3.png")
+    logger.info("Saved sketching_parameters_3.png")
+
+
 def main(args):
     all_data_filename = dataframe_directory / (args.group + "_all_data.pkl")
     summary_data_filename = dataframe_directory / (args.group + "_summary_data.pkl")
@@ -162,6 +218,7 @@ def main(args):
 
     graph1(all_data, summary_data)
     graph2(all_data, summary_data)
+    graph3(all_data, summary_data)
 
 
 if __name__ == "__main__":
