@@ -3,7 +3,7 @@
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
       <excludeFolder url="file://$MODULE_DIR$/.pytest_cache" />
-      <excludeFolder url="file://$MODULE_DIR$/wandb" />
+      <excludeFolder url="file://$MODULE_DIR$/experiments/wandb" />
     </content>
     <orderEntry type="jdk" jdkName="Python 3.8 (SketchingIPM-GvrmGS4n)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
