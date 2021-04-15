@@ -19,7 +19,7 @@ from logzero import logger
 
 dataframe_directory = pathlib.Path.cwd()
 
-matplotlib.use("pgf")
+# matplotlib.use("pgf")
 matplotlib.rcParams.update(
     {
         "pgf.texsystem": "pdflatex",
@@ -35,7 +35,7 @@ def rename_legend_labels(facet_grid, title, new_labels):
     facet_grid.add_legend(legend_data=legend_data, title=title)
 
 
-def graph1(all_data):
+def graph1(all_data, summary_data):
     # Line plot
     # x-axis: _step (0 ... 46)
     # y-axis: condition_number_sketched
@@ -93,7 +93,7 @@ def graph1(all_data):
     logger.info("Saved sketching_parameters_1.png")
 
 
-def graph2(all_data):
+def graph2(all_data, summary_data):
     # Histogram
     # x-axis: w_factor -> s
     # y-axis: condition_number_sketched
@@ -132,12 +132,14 @@ def graph2(all_data):
 
 
 def main(args):
-    dataframe_filename = dataframe_directory / args.group
-    if dataframe_filename.exists():
-        logger.info(f"{dataframe_filename} found")
-        all_data = pd.read_pickle(dataframe_filename)
+    all_data_filename = dataframe_directory / (args.group + "_all_data.pkl")
+    summary_data_filename = dataframe_directory / (args.group + "_summary_data.pkl")
+    if all_data_filename.exists() and summary_data_filename.exists():
+        logger.info(f"{all_data_filename} and {summary_data_filename} found")
+        all_data = pd.read_pickle(all_data_filename)
+        summary_data = pd.read_pickle(summary_data_filename)
     else:
-        logger.info(f"Downloading the data...")
+        logger.info(f"Downloading and processing the data...")
         api = wandb.Api()
         runs = api.runs(
             "karl-welzel/sketching-ipm-condition-number",
@@ -146,12 +148,16 @@ def main(args):
         all_data = pd.concat(
             [run.history().assign(name=run.name, **run.config) for run in runs]
         )
-        all_data.to_pickle(dataframe_filename)
-        print(f"Saved to {dataframe_filename}")
+        summary_data = pd.DataFrame(
+            [{"name": run.name, **run.summary, **run.config} for run in runs]
+        )
+        all_data.to_pickle(all_data_filename)
+        summary_data.to_pickle(summary_data_filename)
+        logger.info(f"Saved to {all_data_filename} and {summary_data_filename}")
     logger.info("Done loading.")
 
-    graph1(all_data)
-    graph2(all_data)
+    graph1(all_data, summary_data)
+    graph2(all_data, summary_data)
 
 
 if __name__ == "__main__":
