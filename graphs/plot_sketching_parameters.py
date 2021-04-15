@@ -11,10 +11,15 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import pathlib
 import seaborn as sns
 import wandb
 
-# matplotlib.use("pgf")
+from logzero import logger
+
+dataframe_directory = pathlib.Path.cwd()
+
+matplotlib.use("pgf")
 matplotlib.rcParams.update(
     {
         "pgf.texsystem": "pdflatex",
@@ -36,6 +41,8 @@ def graph1(all_data):
     # y-axis: condition_number_sketched
     # Show all trajectories for w_factor=2
     # Color differently depending on s
+
+    logger.info("Starting to plot graph 1")
 
     # Filter the data
     filtered_data = all_data.loc[
@@ -80,8 +87,10 @@ def graph1(all_data):
             r"$w = 2m$, $s = 4$",
         ],
     )
-    facet_grid.savefig("sketching_parameters_1.png")
     facet_grid.savefig("sketching_parameters_1.pgf")
+    logger.info("Saved sketching_parameters_1.pgf")
+    facet_grid.savefig("sketching_parameters_1.png")
+    logger.info("Saved sketching_parameters_1.png")
 
 
 def graph2(all_data):
@@ -117,18 +126,29 @@ def graph2(all_data):
     )
 
     facet_grid.savefig("sketching_parameters_2.pgf")
+    logger.info("Saved sketching_parameters_2.pgf")
     facet_grid.savefig("sketching_parameters_2.png")
+    logger.info("Saved sketching_parameters_2.png")
 
 
 def main(args):
-    api = wandb.Api()
-    runs = api.runs(
-        "karl-welzel/sketching-ipm-condition-number",
-        filters={"group": args.group},
-    )
-    all_data = pd.concat(
-        [run.history().assign(name=run.name, **run.config) for run in runs]
-    )
+    dataframe_filename = dataframe_directory / args.group
+    if dataframe_filename.exists():
+        logger.info(f"{dataframe_filename} found")
+        all_data = pd.read_pickle(dataframe_filename)
+    else:
+        logger.info(f"Downloading the data...")
+        api = wandb.Api()
+        runs = api.runs(
+            "karl-welzel/sketching-ipm-condition-number",
+            filters={"group": args.group},
+        )
+        all_data = pd.concat(
+            [run.history().assign(name=run.name, **run.config) for run in runs]
+        )
+        all_data.to_pickle(dataframe_filename)
+        print(f"Saved to {dataframe_filename}")
+    logger.info("Done loading.")
 
     graph1(all_data)
     graph2(all_data)

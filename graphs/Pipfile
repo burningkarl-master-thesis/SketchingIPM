@@ -6,6 +6,7 @@ name = "pypi"
 [packages]
 wandb = "*"
 seaborn = "*"
+logzero = "*"
 
 [dev-packages]
 
