@@ -87,6 +87,7 @@ def graph1(all_data, summary_data):
             r"$w = 2m$, $s = 4$",
         ],
     )
+
     facet_grid.savefig("sketching_parameters_1.pgf")
     logger.info("Saved sketching_parameters_1.pgf")
     facet_grid.savefig("sketching_parameters_1.png")
@@ -94,22 +95,25 @@ def graph1(all_data, summary_data):
 
 
 def graph2(all_data, summary_data):
-    # Histogram
+    # Boxplot
     # x-axis: w_factor -> s
     # y-axis: condition_number_sketched
     # Color differently depending on s
 
     # Filter the data
+    # Restrict the step to ensure all runs are equally weighted
     filtered_data = all_data.loc[
-        (all_data["w_factor"] != 1) & (all_data["s"] != 2), :
+        (all_data["_step"] <= 46) & (all_data["w_factor"] != 1) & (all_data["s"] != 2),
+        :,
     ].copy()
 
     facet_grid = sns.catplot(
         data=filtered_data,
         kind="box",
         x="w_factor",
-        y="condition_number_sketched",
         hue="s",
+        y="condition_number_sketched",
+        whis=5,
         legend_out=False,
     )
     facet_grid.set(
