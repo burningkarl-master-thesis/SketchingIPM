@@ -153,6 +153,7 @@ def graph3(ax, all_data, summary_data, s_colors):
         transform=ax.get_yaxis_transform(),
         colors="r",
     )
+    ax.ticklabel_format(axis="y", style="scientific", scilimits=(0, 0))
     ax.set(
         xlabel="$w/m$",
         ylabel=r"$\mathrm{nnz}\left(\mathbf{W}\mathbf{D}\mathbf{A}^T\right)$",
