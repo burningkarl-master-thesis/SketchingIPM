@@ -42,8 +42,6 @@ def graph1(ax, all_data, summary_data):
     # Show all trajectories for w_factor=2
     # Color differently depending on s
 
-    logger.info("Starting to plot graph 1")
-
     # Filter the data
     filtered_data = all_data.loc[
         (all_data["_step"] <= 46) & (all_data["w_factor"] == 2), :
@@ -61,12 +59,7 @@ def graph1(ax, all_data, summary_data):
     # Sort by s
     filtered_data.sort_values(by="s", ascending=True, inplace=True)
 
-    ax.set(
-        yscale="log",
-        xlabel="IPM iterations",
-        ylabel=r"$\kappa_2\left(\mathbf{R}^{-T}\mathbf{A}\mathbf{D}^2"
-        r"\mathbf{A}^T\mathbf{R}^{-1}\right)$",
-    )
+    ax.set(yscale="log")
     sns.lineplot(
         data=filtered_data.reset_index(),
         estimator=np.median,
@@ -75,6 +68,11 @@ def graph1(ax, all_data, summary_data):
         y="condition_number_sketched",
         hue="s",
         ax=ax,
+    )
+    ax.set(
+        xlabel="IPM iterations",
+        ylabel=r"$\kappa_2\left(\mathbf{R}^{-T}\mathbf{A}\mathbf{D}^2"
+        r"\mathbf{A}^T\mathbf{R}^{-1}\right)$",
     )
     handles, labels = ax.get_legend_handles_labels()
     ax.legend(
@@ -103,19 +101,19 @@ def graph2(ax, all_data, summary_data):
         :,
     ].copy()
 
-    ax.set(
-        yscale="log",
-        xlabel="$w/m$",
-        ylabel=r"$\kappa_2\left(\mathbf{R}^{-T}\mathbf{A}\mathbf{D}^2"
-        r"\mathbf{A}^T\mathbf{R}^{-1}\right)$",
-    )
+    ax.set(yscale="log")
     sns.boxplot(
-        data=filtered_data,
+        data=filtered_data.reset_index(),
         x="w_factor",
         hue="s",
         y="condition_number_sketched",
         whis=float("inf"),
         ax=ax,
+    )
+    ax.set(
+        xlabel="$w/m$",
+        ylabel=r"$\kappa_2\left(\mathbf{R}^{-T}\mathbf{A}\mathbf{D}^2"
+        r"\mathbf{A}^T\mathbf{R}^{-1}\right)$",
     )
     handles, labels = ax.get_legend_handles_labels()
     ax.legend(
@@ -125,10 +123,11 @@ def graph2(ax, all_data, summary_data):
     )
 
 
-def graph3(all_data, summary_data):
-    # Stacked histogram
+def graph4(ax, all_data, summary_data, duration_field):
+    # Three bar charts
     # x-axis: w_factor -> s
-    # y-axis: generate_sketch_duration / sketching_duration
+    # y-axis: generate_sketch_duration, sketching_duration or
+    #         decomposition_duration
     # Color differently depending on s
 
     # Filter the data
@@ -137,48 +136,24 @@ def graph3(all_data, summary_data):
         (all_data["_step"] <= 46) & (all_data["w_factor"] != 1) & (all_data["s"] != 2),
         :,
     ].copy()
-    filtered_data = pd.concat(
-        [
-            filtered_data.rename(
-                columns={"generate_sketch_duration": "duration"}
-            ).assign(duration_mode="generate"),
-            filtered_data.rename(columns={"sketching_duration": "duration"}).assign(
-                duration_mode="multiply"
-            ),
-            # filtered_data.rename(columns={"decomposition_duration": "duration"}).assign(
-            #     duration_mode="decompose"
-            # ),
-            # filtered_data.rename(columns={"product_duration": "duration"}).assign(
-            #     duration_mode="invert"
-            # ),
-        ]
-    )
 
-    facet_grid = sns.catplot(
-        data=filtered_data,
-        kind="bar",
+    sns.barplot(
+        data=filtered_data.reset_index(),
         x="w_factor",
         hue="s",
-        col="duration_mode",
-        y="duration",
+        y=duration_field,
         ci="sd",
+        ax=ax,
     )
-    # facet_grid.set(
-    #     title="Sketching duration",
-    #     xlabel="$w/m$",
-    #     ylabel=r"Time [s]",
-    # )
-
-    # rename_legend_labels(
-    #     facet_grid=facet_grid,
-    #     title="Preconditioning",
-    #     new_labels=["$s = 3$", "$s = 4$"],
-    # )
-
-    facet_grid.savefig("sketching_parameters_3.pgf")
-    logger.info("Saved sketching_parameters_3.pgf")
-    facet_grid.savefig("sketching_parameters_3.png")
-    logger.info("Saved sketching_parameters_3.png")
+    ylabels = {
+        "generate_sketch_duration": r"Time to generate $\mathbf{W}$ [s]",
+        "sketching_duration": r"Time to multiply $\mathbf{W}$ and "
+        r"$\mathbf{D}\mathbf{A}^T$ [s]",
+        "decomposition_duration": r"Time to find $\mathbf{Q}\mathbf{R} = "
+        r"\mathbf{W}\mathbf{D}\mathbf{A}^T$",
+    }
+    ax.set(xlabel="$w/m$", ylabel=ylabels[duration_field])
+    ax.get_legend().remove()
 
 
 def main(args):
@@ -209,7 +184,9 @@ def main(args):
     fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(15, 10))
     graph1(axes[0][0], all_data, summary_data)
     graph2(axes[0][1], all_data, summary_data)
-    # graph3(axes[1][0], all_data, summary_data)
+    graph4(axes[1][0], all_data, summary_data, "generate_sketch_duration")
+    graph4(axes[1][1], all_data, summary_data, "sketching_duration")
+    graph4(axes[1][2], all_data, summary_data, "decomposition_duration")
     fig.savefig("sketching_parameters.pgf")
     fig.savefig("sketching_parameters.png")
 
