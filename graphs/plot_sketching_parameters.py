@@ -20,14 +20,14 @@ from logzero import logger
 dataframe_directory = pathlib.Path.cwd()
 
 # matplotlib.use("pgf")
-matplotlib.rcParams.update(
-    {
-        "pgf.texsystem": "pdflatex",
-        "font.family": "serif",
-        "text.usetex": True,
-        "pgf.rcfonts": False,
-    }
-)
+# matplotlib.rcParams.update(
+#     {
+#         "pgf.texsystem": "pdflatex",
+#         "font.family": "serif",
+#         "text.usetex": True,
+#         "pgf.rcfonts": False,
+#     }
+# )
 
 
 def rename_legend_labels(facet_grid, title, new_labels):
@@ -85,6 +85,7 @@ def graph1(all_data, summary_data):
             r"$w = 2m$, $s = 2$",
             r"$w = 2m$, $s = 3$",
             r"$w = 2m$, $s = 4$",
+            r"$w = 2m$, $s = 5$",
         ],
     )
 
@@ -126,7 +127,7 @@ def graph2(all_data, summary_data):
     rename_legend_labels(
         facet_grid=facet_grid,
         title="Preconditioning",
-        new_labels=["$s = 3$", "$s = 4$"],
+        new_labels=["$s = 3$", "$s = 4$", "$s=5$"],
     )
 
     facet_grid.savefig("sketching_parameters_2.pgf")
@@ -138,7 +139,7 @@ def graph2(all_data, summary_data):
 def graph3(all_data, summary_data):
     # Stacked histogram
     # x-axis: w_factor -> s
-    # y-axis: condition_number_sketched
+    # y-axis: generate_sketch_duration / sketching_duration
     # Color differently depending on s
 
     # Filter the data
