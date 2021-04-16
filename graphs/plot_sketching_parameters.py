@@ -133,12 +133,14 @@ def graph4(ax, all_data, summary_data, duration_field):
         (all_data["w_factor"] != 1) & (all_data["s"] != 2), :
     ].copy()
 
+    # Also try boxplot with ax.set_ylim(bottom=0)
     sns.barplot(
         data=filtered_data.reset_index(),
         x="w_factor",
         hue="s",
         y=duration_field,
-        ci="sd",
+        estimator=np.median,
+        ci=None,
         ax=ax,
     )
     ylabels = {
