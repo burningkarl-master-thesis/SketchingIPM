@@ -85,8 +85,6 @@ def random_sparse_coefficient_matrix(
     # Randomly scattered nonzero entries
     data = rng.normal(size=nnz_per_column * n)
     mat = random_sparse_matrix(m, n, nnz_per_column, data, rng).todok()
-    # One dense row
-    mat[0, :] = np.ones((1, n))
     # Nonzero entries on the diagonals
     mat += scipy.sparse.diags(rng.normal(size=m), shape=(m, n))
     return mat.tocsr()
