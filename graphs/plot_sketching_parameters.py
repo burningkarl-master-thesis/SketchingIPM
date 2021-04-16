@@ -67,6 +67,7 @@ def graph1(ax, all_data, summary_data):
         hue="s",
         ax=ax,
     )
+    ax.set_ylim(bottom=1)
     ax.set(
         xlabel="IPM iterations",
         ylabel=r"$\kappa_2\left(\mathbf{R}^{-T}\mathbf{A}\mathbf{D}^2"
@@ -98,14 +99,16 @@ def graph2(ax, all_data, summary_data):
     ].copy()
 
     ax.set(yscale="log")
-    sns.boxplot(
+    sns.barplot(
         data=filtered_data.reset_index(),
         x="w_factor",
         hue="s",
         y="condition_number_sketched",
-        whis=float("inf"),
+        estimator=np.median,
+        ci=None,
         ax=ax,
     )
+    ax.set_ylim(bottom=1)
     ax.set(
         xlabel="$w/m$",
         ylabel=r"$\kappa_2\left(\mathbf{R}^{-T}\mathbf{A}\mathbf{D}^2"
