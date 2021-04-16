@@ -5,8 +5,8 @@ name = "pypi"
 
 [packages]
 wandb = "*"
-seaborn = "*"
 logzero = "*"
+seaborn = {git = "https://github.com/mwaskom/seaborn"}
 
 [dev-packages]
 
