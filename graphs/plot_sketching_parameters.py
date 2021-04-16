@@ -35,7 +35,7 @@ def rename_legend_labels(facet_grid, title, new_labels):
     facet_grid.add_legend(legend_data=legend_data, title=title)
 
 
-def graph1(ax, all_data, summary_data):
+def graph1(ax, all_data, summary_data, s_colors):
     # Line plot
     # x-axis: _step (0 ... 46)
     # y-axis: condition_number_sketched
@@ -65,6 +65,7 @@ def graph1(ax, all_data, summary_data):
         x="_step",
         y="condition_number_sketched",
         hue="s",
+        palette=s_colors[: filtered_data.nunique()["s"]],
         ax=ax,
     )
     ax.set_ylim(bottom=1)
@@ -87,7 +88,7 @@ def graph1(ax, all_data, summary_data):
     )
 
 
-def graph2(ax, all_data, summary_data):
+def graph2(ax, all_data, summary_data, s_colors):
     # Boxplot
     # x-axis: w_factor -> s
     # y-axis: condition_number_sketched
@@ -106,6 +107,7 @@ def graph2(ax, all_data, summary_data):
         y="condition_number_sketched",
         estimator=np.median,
         ci=None,
+        palette=s_colors[2 : 2 + filtered_data.nunique()["s"]],
         ax=ax,
     )
     ax.set_ylim(bottom=1)
@@ -122,7 +124,7 @@ def graph2(ax, all_data, summary_data):
     )
 
 
-def graph3(ax, all_data, summary_data):
+def graph3(ax, all_data, summary_data, s_colors):
     # Bar chart
     # x-axis: w_factor -> s
     # y-axis: density_sketched
@@ -140,6 +142,7 @@ def graph3(ax, all_data, summary_data):
         y="nnz_sketched",
         estimator=np.median,
         ci=None,
+        palette=s_colors[2 : 2 + filtered_data.nunique()["s"]],
         ax=ax,
     )
     ax.hlines(
@@ -156,7 +159,7 @@ def graph3(ax, all_data, summary_data):
     ax.get_legend().remove()
 
 
-def graph4(ax, all_data, summary_data, duration_field):
+def graph4(ax, all_data, summary_data, s_colors, duration_field):
     # Three bar charts
     # x-axis: w_factor -> s
     # y-axis: generate_sketch_duration, sketching_duration or
@@ -176,6 +179,7 @@ def graph4(ax, all_data, summary_data, duration_field):
         y=duration_field,
         estimator=np.median,
         ci=None,
+        palette=s_colors[2 : 2 + filtered_data.nunique()["s"]],
         ax=ax,
     )
     ylabels = {
@@ -183,7 +187,7 @@ def graph4(ax, all_data, summary_data, duration_field):
         "sketching_duration": r"Time to multiply $\mathbf{W}$ and "
         r"$\mathbf{D}\mathbf{A}^T$ [s]",
         "decomposition_duration": r"Time to find $\mathbf{Q}\mathbf{R} = "
-        r"\mathbf{W}\mathbf{D}\mathbf{A}^T$",
+        r"\mathbf{W}\mathbf{D}\mathbf{A}^T$ [s]",
     }
     ax.set(xlabel="$w/m$", ylabel=ylabels[duration_field])
     ax.get_legend().remove()
@@ -224,13 +228,16 @@ def main(args):
 
     sns.set_theme("paper", "darkgrid")
 
+    s_colors = sns.color_palette()
+    s_colors = s_colors[3:5][::-1] + s_colors[:3] + s_colors[5:]
+
     fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(15, 10))
-    graph1(axes[0][0], all_data, summary_data)
-    graph2(axes[0][1], all_data, summary_data)
-    graph3(axes[0][2], all_data, summary_data)
-    graph4(axes[1][0], all_data, summary_data, "generate_sketch_duration")
-    graph4(axes[1][1], all_data, summary_data, "sketching_duration")
-    graph4(axes[1][2], all_data, summary_data, "decomposition_duration")
+    graph1(axes[0][0], all_data, summary_data, s_colors)
+    graph2(axes[0][1], all_data, summary_data, s_colors)
+    graph3(axes[0][2], all_data, summary_data, s_colors)
+    graph4(axes[1][0], all_data, summary_data, s_colors, "generate_sketch_duration")
+    graph4(axes[1][1], all_data, summary_data, s_colors, "sketching_duration")
+    graph4(axes[1][2], all_data, summary_data, s_colors, "decomposition_duration")
     fig.savefig("sketching_parameters.pgf")
     fig.savefig("sketching_parameters.png")
 
