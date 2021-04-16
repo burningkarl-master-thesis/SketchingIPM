@@ -93,7 +93,6 @@ def graph2(ax, all_data, summary_data):
     # Color differently depending on s
 
     # Filter the data
-    # Restrict the step to ensure all runs are equally weighted
     filtered_data = all_data.loc[
         (all_data["w_factor"] != 1) & (all_data["s"] != 2), :
     ].copy()
@@ -120,6 +119,40 @@ def graph2(ax, all_data, summary_data):
     )
 
 
+def graph3(ax, all_data, summary_data):
+    # Bar chart
+    # x-axis: w_factor -> s
+    # y-axis: density_sketched
+    # Color differently depending on s
+
+    # Filter the data
+    filtered_data = all_data.loc[
+        (all_data["w_factor"] != 1) & (all_data["s"] != 2), :
+    ].copy()
+
+    sns.barplot(
+        data=filtered_data.reset_index(),
+        x="w_factor",
+        hue="s",
+        y="nnz_sketched",
+        estimator=np.median,
+        ci=None,
+        ax=ax,
+    )
+    ax.hlines(
+        filtered_data["nnz_coefficient"],
+        0,
+        1,
+        transform=ax.get_yaxis_transform(),
+        colors="r",
+    )
+    ax.set(
+        xlabel="$w/m$",
+        ylabel=r"$\mathrm{nnz}\left(\mathbf{W}\mathbf{D}\mathbf{A}^T\right)$",
+    )
+    ax.get_legend().remove()
+
+
 def graph4(ax, all_data, summary_data, duration_field):
     # Three bar charts
     # x-axis: w_factor -> s
@@ -128,7 +161,6 @@ def graph4(ax, all_data, summary_data, duration_field):
     # Color differently depending on s
 
     # Filter the data
-    # Restrict the step to ensure all runs are equally weighted
     filtered_data = all_data.loc[
         (all_data["w_factor"] != 1) & (all_data["s"] != 2), :
     ].copy()
@@ -190,6 +222,7 @@ def main(args):
     fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(15, 10))
     graph1(axes[0][0], all_data, summary_data)
     graph2(axes[0][1], all_data, summary_data)
+    graph3(axes[0][2], all_data, summary_data)
     graph4(axes[1][0], all_data, summary_data, "generate_sketch_duration")
     graph4(axes[1][1], all_data, summary_data, "sketching_duration")
     graph4(axes[1][2], all_data, summary_data, "decomposition_duration")
