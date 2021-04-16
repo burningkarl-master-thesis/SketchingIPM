@@ -43,9 +43,7 @@ def graph1(ax, all_data, summary_data):
     # Color differently depending on s
 
     # Filter the data
-    filtered_data = all_data.loc[
-        (all_data["_step"] <= 46) & (all_data["w_factor"] == 2), :
-    ].copy()
+    filtered_data = all_data.loc[all_data["w_factor"] == 2, :].copy()
 
     # Include condition numbers without any preconditioning
     filtered_data.loc[:, "s"] = filtered_data.loc[:, "s"].astype(str)
@@ -97,8 +95,7 @@ def graph2(ax, all_data, summary_data):
     # Filter the data
     # Restrict the step to ensure all runs are equally weighted
     filtered_data = all_data.loc[
-        (all_data["_step"] <= 46) & (all_data["w_factor"] != 1) & (all_data["s"] != 2),
-        :,
+        (all_data["w_factor"] != 1) & (all_data["s"] != 2), :
     ].copy()
 
     ax.set(yscale="log")
@@ -133,8 +130,7 @@ def graph4(ax, all_data, summary_data, duration_field):
     # Filter the data
     # Restrict the step to ensure all runs are equally weighted
     filtered_data = all_data.loc[
-        (all_data["_step"] <= 46) & (all_data["w_factor"] != 1) & (all_data["s"] != 2),
-        :,
+        (all_data["w_factor"] != 1) & (all_data["s"] != 2), :
     ].copy()
 
     sns.barplot(
@@ -174,12 +170,20 @@ def main(args):
             [run.history().assign(name=run.name, **run.config) for run in runs]
         )
         summary_data = pd.DataFrame(
-            [{"name": run.name, **run.summary, **run.config} for run in runs]
+            [{**run.summary, **run.config} for run in runs],
+            index=[run.name for run in runs],
         )
         all_data.to_pickle(all_data_filename)
         summary_data.to_pickle(summary_data_filename)
         logger.info(f"Saved to {all_data_filename} and {summary_data_filename}")
     logger.info("Done loading.")
+
+    for name in np.unique(all_data["name"]):
+        all_data.loc[all_data["name"] == name, :] = all_data.loc[
+            (all_data["name"] == name)
+            & (all_data["_step"] <= summary_data.loc[name, "best_iteration"]),
+            :,
+        ]
 
     fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(15, 10))
     graph1(axes[0][0], all_data, summary_data)
