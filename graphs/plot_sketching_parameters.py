@@ -35,7 +35,7 @@ def rename_legend_labels(facet_grid, title, new_labels):
     facet_grid.add_legend(legend_data=legend_data, title=title)
 
 
-def graph1(all_data, summary_data):
+def graph1(ax, all_data, summary_data):
     # Line plot
     # x-axis: _step (0 ... 46)
     # y-axis: condition_number_sketched
@@ -61,24 +61,22 @@ def graph1(all_data, summary_data):
     # Sort by s
     filtered_data.sort_values(by="s", ascending=True, inplace=True)
 
-    facet_grid = sns.relplot(
-        data=filtered_data,
-        kind="line",
-        estimator=np.median,
-        ci=100,
-        x="_step",
-        y="condition_number_sketched",
-        hue="s",
-        facet_kws={"legend_out": False},
-    )
-    facet_grid.set(
+    ax.set(
         yscale="log",
-        title="Condition numbers",
         xlabel="IPM iterations",
         ylabel=r"$\kappa_2\left(\mathbf{R}^{-T}\mathbf{A}\mathbf{D}^2"
         r"\mathbf{A}^T\mathbf{R}^{-1}\right)$",
     )
-    plt.legend(
+    sns.lineplot(
+        data=filtered_data.reset_index(),
+        estimator=np.median,
+        errorbar=("pi", 100),  # 100% interval = min/max values
+        x="_step",
+        y="condition_number_sketched",
+        hue="s",
+        ax=ax,
+    )
+    ax.legend(
         title="Preconditioning",
         labels=[
             "None",
@@ -88,11 +86,6 @@ def graph1(all_data, summary_data):
             r"$w = 2m$, $s = 5$",
         ],
     )
-
-    facet_grid.savefig("sketching_parameters_1.pgf")
-    logger.info("Saved sketching_parameters_1.pgf")
-    facet_grid.savefig("sketching_parameters_1.png")
-    logger.info("Saved sketching_parameters_1.png")
 
 
 def graph2(all_data, summary_data):
@@ -217,9 +210,12 @@ def main(args):
         logger.info(f"Saved to {all_data_filename} and {summary_data_filename}")
     logger.info("Done loading.")
 
-    graph1(all_data, summary_data)
-    graph2(all_data, summary_data)
-    graph3(all_data, summary_data)
+    fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(15, 10))
+    graph1(axes[0][0], all_data, summary_data)
+    # graph2(axes[0][1], all_data, summary_data)
+    # graph3(axes[1][0], all_data, summary_data)
+    fig.savefig("sketching_parameters.pgf")
+    fig.savefig("sketching_parameters.png")
 
 
 if __name__ == "__main__":
