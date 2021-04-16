@@ -76,43 +76,42 @@ def run_experiment(
         reinit=True,
     )
 
-    try:
-        result = scipy.optimize.linprog(
-            c,
-            A_eq=a,
-            b_eq=b,
-            options={
-                "_sparse_presolve": ipm_config.sparse,
-                "sparse": ipm_config.sparse,
-                "cholesky": ipm_config.symmetric_positive_definite,
-                "sym_pos": ipm_config.symmetric_positive_definite,
-                "iterative": ipm_config.iterative,
-                "linear_operators": ipm_config.linear_operators,
-                "triangular_solve": ipm_config.triangular_solve,
-                "solver_rtol": ipm_config.solver_relative_tolerance,
-                "solver_atol": ipm_config.solver_absolute_tolerance,
-                "pc": ipm_config.predictor_corrector,
-                "ip": ipm_config.predictor_corrector,
-                "disp": True,
-                "presolve": ipm_config.presolve,
-                "autoscale": ipm_config.autoscale,
-                "tol": ipm_config.tolerance,
-                "maxiter": ipm_config.maxiter,
-                "preconditioning_method": "none"
-                if preconditioning_config.preconditioning is Preconditioning.NONE
-                else "sketching",
-                "sketching_factor": sketching_config.w_factor,
-                "sketching_sparsity": sketching_config.s,
-            },
-        )
-        # logger.debug(result)
-        logger.debug(
-            f"{sum(np.isclose(result.x, np.zeros(problem_config.n), atol=1e-7))}"
-        )
-    except np.linalg.LinAlgError as e:
-        logger.error(e)
-        logger.info("This error is expected and will be ignored!")
+    result = scipy.optimize.linprog(
+        c,
+        A_eq=a,
+        b_eq=b,
+        options={
+            "_sparse_presolve": ipm_config.sparse,
+            "sparse": ipm_config.sparse,
+            "cholesky": ipm_config.symmetric_positive_definite,
+            "sym_pos": ipm_config.symmetric_positive_definite,
+            "iterative": ipm_config.iterative,
+            "linear_operators": ipm_config.linear_operators,
+            "triangular_solve": ipm_config.triangular_solve,
+            "solver_rtol": ipm_config.solver_relative_tolerance,
+            "solver_atol": ipm_config.solver_absolute_tolerance,
+            "pc": ipm_config.predictor_corrector,
+            "ip": ipm_config.predictor_corrector,
+            "disp": True,
+            "presolve": ipm_config.presolve,
+            "autoscale": ipm_config.autoscale,
+            "tol": ipm_config.tolerance,
+            "maxiter": ipm_config.maxiter,
+            "preconditioning_method": "none"
+            if preconditioning_config.preconditioning is Preconditioning.NONE
+            else "sketching",
+            "sketching_factor": sketching_config.w_factor,
+            "sketching_sparsity": sketching_config.s,
+        },
+    )
+    # logger.debug(result)
+    logger.debug(
+        f"{sum(np.isclose(result.x, np.zeros(problem_config.n), atol=1e-7))}"
+    )
 
+    run.summary["status"] = result.status
+    run.summary["success"] = result.success
+    run.summary["outer_iterations"] = result.nit
     run.finish()
 
 
