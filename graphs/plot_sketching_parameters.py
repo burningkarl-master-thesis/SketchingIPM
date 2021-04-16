@@ -20,19 +20,19 @@ from logzero import logger
 dataframe_directory = pathlib.Path.cwd()
 
 # matplotlib.use("pgf")
-# matplotlib.rcParams.update(
-#     {
-#         "pgf.texsystem": "pdflatex",
-#         "font.family": "serif",
-#         "text.usetex": True,
-#         "pgf.rcfonts": False,
-#     }
-# )
+matplotlib.rcParams.update(
+    {
+        "pgf.texsystem": "pdflatex",
+        "font.family": "serif",
+        "text.usetex": True,
+        "pgf.rcfonts": False,
+    }
+)
 
-
-def rename_legend_labels(facet_grid, title, new_labels):
-    legend_data = dict(zip(new_labels, facet_grid._legend_data.values()))
-    facet_grid.add_legend(legend_data=legend_data, title=title)
+# To get the ci="decile" code working add the following code in
+# _CategoricalStatPlotter.estimate_statistic (currently categorical.py, line 1443)
+#     elif ci == "decile":
+#         confint[i].append(np.percentile(stat_data, (10, 90)))
 
 
 def graph1(ax, all_data, summary_data, s_colors):
@@ -85,6 +85,7 @@ def graph1(ax, all_data, summary_data, s_colors):
             r"$w = 2m$, $s = 4$",
             r"$w = 2m$, $s = 5$",
         ],
+        loc="upper left",
     )
 
 
@@ -106,7 +107,7 @@ def graph2(ax, all_data, summary_data, s_colors):
         hue="s",
         y="condition_number_sketched",
         estimator=np.median,
-        ci=None,
+        ci="decile",
         palette=s_colors[2 : 2 + filtered_data.nunique()["s"]],
         ax=ax,
     )
@@ -141,7 +142,7 @@ def graph3(ax, all_data, summary_data, s_colors):
         hue="s",
         y="nnz_sketched",
         estimator=np.median,
-        ci=None,
+        ci="decile",
         palette=s_colors[2 : 2 + filtered_data.nunique()["s"]],
         ax=ax,
     )
@@ -178,7 +179,7 @@ def graph4(ax, all_data, summary_data, s_colors, duration_field):
         hue="s",
         y=duration_field,
         estimator=np.median,
-        ci=None,
+        ci="decile",
         palette=s_colors[2 : 2 + filtered_data.nunique()["s"]],
         ax=ax,
     )
