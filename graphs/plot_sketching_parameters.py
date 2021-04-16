@@ -219,6 +219,8 @@ def main(args):
             :,
         ]
 
+    sns.set_theme("paper", "darkgrid")
+
     fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(15, 10))
     graph1(axes[0][0], all_data, summary_data)
     graph2(axes[0][1], all_data, summary_data)
