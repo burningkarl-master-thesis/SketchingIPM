@@ -83,6 +83,7 @@ class IpmConfig(DaciteFromFile):
     triangular_solve: bool = True
     solver_relative_tolerance: float = 0
     solver_absolute_tolerance: float = 1e-10
+    solver_maxiter: int = 1000
 
     predictor_corrector: bool = True
     presolve: bool = False
@@ -93,6 +94,7 @@ class IpmConfig(DaciteFromFile):
     def __post_init__(self):
         """ Validates the current configuration """
         try:
+            assert self.solver_maxiter >= 1
             assert self.tolerance > 0
             assert self.maxiter >= 1
         except AssertionError as error:

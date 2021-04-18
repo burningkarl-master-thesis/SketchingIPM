@@ -90,6 +90,7 @@ def run_experiment(
             "triangular_solve": ipm_config.triangular_solve,
             "solver_rtol": ipm_config.solver_relative_tolerance,
             "solver_atol": ipm_config.solver_absolute_tolerance,
+            "solver_maxiter": ipm_config.solver_maxiter,
             "pc": ipm_config.predictor_corrector,
             "ip": ipm_config.predictor_corrector,
             "disp": True,
