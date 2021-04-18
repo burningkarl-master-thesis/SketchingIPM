@@ -91,6 +91,8 @@ def run_experiment(
             "solver_rtol": ipm_config.solver_relative_tolerance,
             "solver_atol": ipm_config.solver_absolute_tolerance,
             "solver_maxiter": ipm_config.solver_maxiter,
+            "log_conditioning_and_rank": ipm_config.log_conditioning_and_rank,
+            "log_sparsity": ipm_config.log_sparsity,
             "pc": ipm_config.predictor_corrector,
             "ip": ipm_config.predictor_corrector,
             "disp": True,

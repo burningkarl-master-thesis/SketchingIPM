@@ -84,6 +84,8 @@ class IpmConfig(DaciteFromFile):
     solver_relative_tolerance: float = 0
     solver_absolute_tolerance: float = 1e-10
     solver_maxiter: int = 1000
+    log_conditioning_and_rank: bool = True
+    log_sparsity: bool = True
 
     predictor_corrector: bool = True
     presolve: bool = False
