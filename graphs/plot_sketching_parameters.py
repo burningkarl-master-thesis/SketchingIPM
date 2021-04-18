@@ -43,7 +43,9 @@ def graph1(ax, all_data, summary_data, s_colors):
     # Color differently depending on s
 
     # Filter the data
-    filtered_data = all_data.loc[all_data["w_factor"] == 2, :].copy()
+    filtered_data = all_data.loc[
+        (all_data["w_factor"] == 2) & (all_data["_step"] <= 120), :
+    ].copy()
 
     # Include condition numbers without any preconditioning
     filtered_data.loc[:, "s"] = filtered_data.loc[:, "s"].astype(str)
@@ -61,7 +63,7 @@ def graph1(ax, all_data, summary_data, s_colors):
     sns.lineplot(
         data=filtered_data.reset_index(),
         estimator=np.median,
-        errorbar=("pi", 100),  # 100% interval = min/max values
+        errorbar=("pi", 90),  # 100% interval = min/max values
         x="_step",
         y="condition_number_sketched",
         hue="s",
@@ -227,6 +229,18 @@ def main(args):
             & (all_data["_step"] <= summary_data.loc[name, "best_iteration"]),
             :,
         ]
+        # The last iteration can still be pretty bad
+        all_data.loc[
+            (all_data["name"] == name)
+            & (all_data["_step"] == summary_data.loc[name, "best_iteration"]),
+            (
+                "condition_number",
+                "condition_number_sketched",
+                "inner_iterations",
+                "residual",
+                "solve_duration",
+            ),
+        ] = float("nan")
 
     sns.set_theme("paper", "darkgrid")
 
