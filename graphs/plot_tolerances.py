@@ -137,6 +137,45 @@ def graph_accuracy_distribution(ax, all_data, summary_data):
     ax.get_legend().remove()
 
 
+def graph_accuracy_vs_time(ax, all_data, summary_data):
+    # Scatter plot
+    # x-axis: accuracy
+    # y-axis: time per iteration
+    # color: solver_maxiter
+
+    filtered_data = summary_data.copy()
+    filtered_data.loc[:, "accuracy"] = filtered_data.loc[
+        :, ("best_rho_p", "best_rho_d", "best_rho_A")
+    ].max(axis=1)
+    filtered_data.loc[:, "duration"] = filtered_data.loc[
+        :,
+        (
+            "generate_sketch_duration",
+            "sketching_duration",
+            "decomposition_duration",
+            "product_duration",
+            "solve_duration",
+        ),
+    ].sum(axis=1)
+
+    ax.set(yscale="log")
+    ax.set_ylim(bottom=sys.float_info.epsilon, top=3)
+    sns.scatterplot(
+        data=filtered_data.reset_index(),
+        x="duration",
+        y="accuracy",
+        hue="solver_maxiter",
+        palette=sns.color_palette()[: filtered_data.nunique()["solver_maxiter"]],
+        ax=ax,
+    )
+    ax.set(
+        title="",
+        xlabel="Time per IPM iteration [s]",
+        ylabel="Accuracy (best iteration)",
+    )
+    ax.get_legend().remove()
+
+
 def main(args):
     set_plot_aesthetics()
 
@@ -145,9 +184,9 @@ def main(args):
 
     fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(15, 5))
     graph_residual_norms(axes[0], all_data, summary_data)
+    # graph_accuracy_distribution(axes[1], all_data, summary_data)
     graph_rho_p(axes[1], all_data, summary_data)
-    graph_rho_p_distribution(axes[2], all_data, summary_data)
-
+    graph_accuracy_vs_time(axes[2], all_data, summary_data)
 
     fig.savefig("tolerances.pgf")
     fig.savefig("tolerances.png")
