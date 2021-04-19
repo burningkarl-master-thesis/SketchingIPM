@@ -37,8 +37,6 @@ def graph_sketching_duration(ax, all_data, summary_data):
     sns.barplot(
         data=filtered_data.reset_index(),
         x="linear_operators_mode",
-        hue="linear_operators_mode",
-        dodge=False,
         y="sketching_duration",
         estimator=np.median,
         ci="decile",
@@ -49,7 +47,6 @@ def graph_sketching_duration(ax, all_data, summary_data):
         ylabel="Sketching duration [s]",
         xticklabels=[r"Invert $\mathbf{R}$", "Triangular solve"],
     )
-    ax.get_legend().remove()
 
 
 def graph_product_duration(ax, all_data, summary_data):
@@ -60,8 +57,6 @@ def graph_product_duration(ax, all_data, summary_data):
     sns.barplot(
         data=all_data.copy().reset_index(),
         x="linear_operators_mode",
-        hue="linear_operators_mode",
-        dodge=False,
         y="product_duration",
         estimator=np.median,
         ci="decile",
@@ -73,7 +68,6 @@ def graph_product_duration(ax, all_data, summary_data):
         r"\mathbf{A}^T\mathbf{R}^{-1}$ [s]",
         xticklabels=[r"Invert $\mathbf{R}$", "Triangular solve"],
     )
-    ax.get_legend().remove()
 
 
 def graph_solve_duration(ax, all_data, summary_data):
@@ -84,8 +78,6 @@ def graph_solve_duration(ax, all_data, summary_data):
     sns.barplot(
         data=all_data.copy().reset_index(),
         x="linear_operators_mode",
-        hue="linear_operators_mode",
-        dodge=False,
         y="solve_duration",
         estimator=np.median,
         ci="decile",
@@ -96,7 +88,6 @@ def graph_solve_duration(ax, all_data, summary_data):
         ylabel="Solve duration [s]",
         xticklabels=[r"Invert $\mathbf{R}$", "Triangular solve"],
     )
-    ax.get_legend().remove()
 
 
 def main(args):
