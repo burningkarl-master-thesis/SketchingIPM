@@ -105,6 +105,37 @@ def graph_rho_p(ax, all_data, summary_data):
     ax.get_legend().remove()
 
 
+def graph_rho_p_distribution(ax, all_data, summary_data):
+    # Box plot
+    # x-axis: solver_maxiter
+    # y-axis: rho_p
+    # color: solver_maxiter
+
+    filtered_data = summary_data.copy()
+    filtered_data.loc[:, "tolerance"] = filtered_data.loc[
+        :, ("best_rho_p", "best_rho_d", "best_rho_A")
+    ].max(axis=1)
+
+    ax.set(yscale="log")
+    sns.barplot(
+        data=filtered_data.reset_index(),
+        x="solver_maxiter",
+        hue="solver_maxiter",
+        dodge=False,
+        y="tolerance",
+        estimator=np.median,
+        ci="decile",
+        # whis=float("inf"),
+        ax=ax,
+    )
+    ax.set(
+        title="",
+        xlabel="CG iterations",
+        ylabel=r"IPM tolerance of best iteration",
+    )
+    ax.get_legend().remove()
+
+
 def main(args):
     set_plot_aesthetics()
 
