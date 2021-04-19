@@ -25,13 +25,54 @@ def graph_residual_norms(ax, all_data, summary_data):
     # Bar chart
     # x-axis: solver_maxiter
     # y-axis: residual[0], M_residual[0]
-    pass
+
+    filtered_data_1 = all_data.copy()
+    filtered_data_1.loc[:, "residual"] = filtered_data_1.loc[:, "residual[0]"]
+    filtered_data_1.loc[:, "residual_type"] = "preconditioned"
+    filtered_data_2 = all_data.copy()
+    filtered_data_2.loc[:, "residual"] = filtered_data_2.loc[:, "residual_M[0]"]
+    filtered_data_2.loc[:, "residual_type"] = "normal"
+    filtered_data = pd.concat([filtered_data_1, filtered_data_2])
+
+    ax.set(yscale="log")
+    sns.barplot(
+        data=filtered_data.reset_index(),
+        x="residual_type",
+        hue="solver_maxiter",
+        y="residual",
+        estimator=np.median,
+        ci="decile",
+        ax=ax,
+    )
+    ax.set(
+        xlabel="",
+        ylabel="Residual 2-norms",
+        xticklabels=[
+            r"$\left\| \mathbf{R}^{-T}\mathbf{A}\mathbf{D}^2\mathbf{A}^T"
+            r"\mathbf{R}^{-1} \tilde{\mathbf{x}} - \tilde{\mathbf{r}} \right\|_2$",
+            r"$\left\| \mathbf{A}\mathbf{D}^2\mathbf{A}^T \mathbf{x}"
+            r" - \mathbf{r} \right\|_2$",
+        ],
+    )
+    handles, labels = ax.get_legend_handles_labels()
+    ax.legend(
+        title="CG iterations",
+        handles=handles,
+        labels=[
+            r"$25$",
+            r"$50$",
+            r"$75$",
+            r"$100$",
+        ],
+        loc="upper right",
+    )
 
 
 def main(args):
     set_plot_aesthetics()
 
     all_data, summary_data = load_data(args.group)
+    all_data = all_data.where(all_data != "NaN")
 
     fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(15, 5))
     graph_residual_norms(axes[0], all_data, summary_data)
