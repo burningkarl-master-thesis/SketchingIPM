@@ -7,32 +7,18 @@ __license__ = "GPLv3"
 
 import argparse
 
-import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import pathlib
 import seaborn as sns
-import wandb
 
-from logzero import logger
+from plotting_utils import load_data, set_plot_aesthetics
 
-dataframe_directory = pathlib.Path.cwd()
-
-# matplotlib.use("pgf")
-matplotlib.rcParams.update(
-    {
-        "pgf.texsystem": "pdflatex",
-        "font.family": "serif",
-        "text.usetex": True,
-        "pgf.rcfonts": False,
-    }
-)
 
 # To get the ci="decile" code working add the following code in
-# _CategoricalStatPlotter.estimate_statistic (currently categorical.py, line 1443)
+# _CategoricalStatPlotter.estimate_statistic (categorical.py, line 1443)
 #     elif ci == "decile":
-#         confint[i].append(np.percentile(stat_data, (10, 90)))
+#         confint[i].append(np.percentile(stat_data, (5, 95)))
 
 
 def graph1(ax, all_data, summary_data, s_colors):
@@ -198,35 +184,12 @@ def graph4(ax, all_data, summary_data, s_colors, duration_field):
 
 
 def main(args):
-    all_data_filename = dataframe_directory / (args.group + "_all_data.pkl")
-    summary_data_filename = dataframe_directory / (args.group + "_summary_data.pkl")
-    if all_data_filename.exists() and summary_data_filename.exists():
-        logger.info(f"{all_data_filename} and {summary_data_filename} found")
-        all_data = pd.read_pickle(all_data_filename)
-        summary_data = pd.read_pickle(summary_data_filename)
-    else:
-        logger.info(f"Downloading and processing the data...")
-        api = wandb.Api()
-        runs = api.runs(
-            "karl-welzel/sketching-ipm-condition-number",
-            filters={"group": args.group},
-        )
-        all_data = pd.concat(
-            [run.history().assign(name=run.name, **run.config) for run in runs]
-        )
-        summary_data = pd.DataFrame(
-            [{**run.summary, **run.config} for run in runs],
-            index=[run.name for run in runs],
-        )
-        all_data.to_pickle(all_data_filename)
-        summary_data.to_pickle(summary_data_filename)
-        logger.info(f"Saved to {all_data_filename} and {summary_data_filename}")
-    logger.info("Done loading.")
-
-    sns.set_theme("paper", "darkgrid")
+    set_plot_aesthetics()
 
     s_colors = sns.color_palette()
     s_colors = s_colors[3:5][::-1] + s_colors[:3] + s_colors[5:]
+
+    all_data, summary_data = load_data(args.group)
 
     fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(15, 10))
     graph1(axes[0][0], all_data, summary_data, s_colors)
