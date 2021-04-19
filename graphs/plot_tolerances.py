@@ -26,10 +26,18 @@ def graph_residual_norms(ax, all_data, summary_data):
     # x-axis: solver_maxiter
     # y-axis: residual[0], M_residual[0]
 
-    filtered_data_1 = all_data.copy()
+    filtered_data = all_data.copy()
+    for name in np.unique(all_data["name"]):
+        filtered_data.loc[filtered_data["name"] == name, :] = filtered_data.loc[
+            (filtered_data["name"] == name)
+            & (filtered_data["_step"] < summary_data.loc[name, "best_iteration"]),
+            :,
+        ]
+
+    filtered_data_1 = filtered_data.copy()
     filtered_data_1.loc[:, "residual"] = filtered_data_1.loc[:, "residual[0]"]
     filtered_data_1.loc[:, "residual_type"] = "preconditioned"
-    filtered_data_2 = all_data.copy()
+    filtered_data_2 = filtered_data.copy()
     filtered_data_2.loc[:, "residual"] = filtered_data_2.loc[:, "residual_M[0]"]
     filtered_data_2.loc[:, "residual_type"] = "normal"
     filtered_data = pd.concat([filtered_data_1, filtered_data_2])
