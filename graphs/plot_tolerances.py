@@ -6,6 +6,7 @@ __author__ = "Karl Welzel"
 __license__ = "GPLv3"
 
 import argparse
+import sys
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -66,13 +67,7 @@ def graph_residual_norms(ax, all_data, summary_data):
     ax.legend(
         title="CG iterations",
         handles=handles,
-        labels=[
-            r"$25$",
-            r"$50$",
-            r"$75$",
-            r"$100$",
-            r"Direct"
-        ],
+        labels=[r"$25$", r"$50$", r"$75$", r"$100$", r"150", r"Direct"],
         loc="upper right",
     )
 
@@ -84,7 +79,7 @@ def graph_rho_p(ax, all_data, summary_data):
     # color: solver_maxiter
 
     # Filter the data
-    filtered_data = all_data.loc[(all_data["seed"] == 946047), :].copy()
+    filtered_data = all_data.loc[(all_data["seed"] == 387197), :].copy()
 
     ax.set(yscale="log")
     sns.lineplot(
@@ -145,6 +140,12 @@ def main(args):
     fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(15, 5))
     graph_residual_norms(axes[0], all_data, summary_data)
     graph_rho_p(axes[1], all_data, summary_data)
+    graph_rho_p_distribution(axes[2], all_data, summary_data)
+
+    y_max = max(ax.get_ylim()[1] for ax in axes)
+    y_min = sys.float_info.epsilon
+    for ax in axes:
+        ax.set_ylim(bottom=y_min, top=y_max)
 
     fig.savefig("tolerances.pgf")
     fig.savefig("tolerances.png")
