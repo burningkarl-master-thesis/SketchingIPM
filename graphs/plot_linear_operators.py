@@ -52,6 +52,53 @@ def graph_sketching_duration(ax, all_data, summary_data):
     ax.get_legend().remove()
 
 
+def graph_product_duration(ax, all_data, summary_data):
+    # Bar chart
+    # x-axis: linear_operators_mode
+    # y-axis: product_duration
+
+    sns.barplot(
+        data=all_data.copy().reset_index(),
+        x="linear_operators_mode",
+        hue="linear_operators_mode",
+        dodge=False,
+        y="product_duration",
+        estimator=np.median,
+        ci="decile",
+        ax=ax,
+    )
+    ax.set(
+        xlabel="",
+        ylabel=r"Product duration $\mathbf{R}^{-T}\mathbf{A}\mathbf{D}^2"
+        r"\mathbf{A}^T\mathbf{R}^{-1}$ [s]",
+        xticklabels=[r"Invert $\mathbf{R}$", "Triangular solve"],
+    )
+    ax.get_legend().remove()
+
+
+def graph_solve_duration(ax, all_data, summary_data):
+    # Bar chart
+    # x-axis: linear_operators_mode
+    # y-axis: solve_duration
+
+    sns.barplot(
+        data=all_data.copy().reset_index(),
+        x="linear_operators_mode",
+        hue="linear_operators_mode",
+        dodge=False,
+        y="solve_duration",
+        estimator=np.median,
+        ci="decile",
+        ax=ax,
+    )
+    ax.set(
+        xlabel="",
+        ylabel="Solve duration [s]",
+        xticklabels=[r"Invert $\mathbf{R}$", "Triangular solve"],
+    )
+    ax.get_legend().remove()
+
+
 def main(args):
     set_plot_aesthetics()
 
@@ -79,6 +126,13 @@ def main(args):
 
     fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(15, 5))
     graph_sketching_duration(axes[0], all_data, summary_data)
+    graph_product_duration(axes[1], all_data, summary_data)
+    graph_solve_duration(axes[2], all_data, summary_data)
+
+    y_max = max(ax.get_ylim()[1] for ax in axes)
+    for ax in axes:
+        ax.set_ylim(bottom=0, top=y_max)
+
     fig.savefig("linear_operators.pgf")
     fig.savefig("linear_operators.png")
 
