@@ -71,9 +71,38 @@ def graph_residual_norms(ax, all_data, summary_data):
             r"$50$",
             r"$75$",
             r"$100$",
+            r"Direct"
         ],
         loc="upper right",
     )
+
+
+def graph_rho_p(ax, all_data, summary_data):
+    # Line plot
+    # x-axis: _step
+    # y-axis: rho_p
+    # color: solver_maxiter
+
+    # Filter the data
+    filtered_data = all_data.loc[(all_data["seed"] == 946047), :].copy()
+
+    ax.set(yscale="log")
+    sns.lineplot(
+        data=filtered_data.reset_index(),
+        estimator=np.median,
+        errorbar=("pi", 90),  # 100% interval = min/max values
+        x="_step",
+        y="rho_p",
+        hue="solver_maxiter",
+        palette=sns.color_palette()[: filtered_data.nunique()["solver_maxiter"]],
+        ax=ax,
+    )
+    ax.set(
+        title="",
+        xlabel="IPM iteration",
+        ylabel=r"$\left\|\mathbf{r}_{p}^k\right\|_2 / \left\| \mathbf{r}_p^0 \right\|_2$",
+    )
+    ax.get_legend().remove()
 
 
 def main(args):
@@ -84,6 +113,7 @@ def main(args):
 
     fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(15, 5))
     graph_residual_norms(axes[0], all_data, summary_data)
+    graph_rho_p(axes[1], all_data, summary_data)
 
     fig.savefig("tolerances.pgf")
     fig.savefig("tolerances.png")
