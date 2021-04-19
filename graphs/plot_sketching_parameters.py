@@ -44,7 +44,7 @@ def graph1(ax, all_data, summary_data, s_colors):
 
     # Filter the data
     filtered_data = all_data.loc[
-        (all_data["w_factor"] == 2) & (all_data["_step"] <= 120), :
+        (all_data["w_factor"] == 2), :
     ].copy()
 
     # Include condition numbers without any preconditioning
@@ -222,25 +222,6 @@ def main(args):
         summary_data.to_pickle(summary_data_filename)
         logger.info(f"Saved to {all_data_filename} and {summary_data_filename}")
     logger.info("Done loading.")
-
-    for name in np.unique(all_data["name"]):
-        all_data.loc[all_data["name"] == name, :] = all_data.loc[
-            (all_data["name"] == name)
-            & (all_data["_step"] <= summary_data.loc[name, "best_iteration"]),
-            :,
-        ]
-        # The last iteration can still be pretty bad
-        all_data.loc[
-            (all_data["name"] == name)
-            & (all_data["_step"] == summary_data.loc[name, "best_iteration"]),
-            (
-                "condition_number",
-                "condition_number_sketched",
-                "inner_iterations",
-                "residual",
-                "solve_duration",
-            ),
-        ] = float("nan")
 
     sns.set_theme("paper", "darkgrid")
 
