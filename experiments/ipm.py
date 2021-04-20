@@ -57,6 +57,7 @@ def run_experiment(
     if preconditioning_config.preconditioning not in [
         Preconditioning.NONE,
         Preconditioning.QR,
+        Preconditioning.FULL_QR,
     ]:
         raise ValueError("Not iplemented yet!")
 
@@ -100,17 +101,17 @@ def run_experiment(
             "autoscale": ipm_config.autoscale,
             "tol": ipm_config.tolerance,
             "maxiter": ipm_config.maxiter,
-            "preconditioning_method": "none"
-            if preconditioning_config.preconditioning is Preconditioning.NONE
-            else "sketching",
+            "preconditioning_method": {
+                Preconditioning.NONE: "none",
+                Preconditioning.QR: "sketching",
+                Preconditioning.FULL_QR: "full_qr",
+            }[preconditioning_config.preconditioning],
             "sketching_factor": sketching_config.w_factor,
             "sketching_sparsity": sketching_config.s,
         },
     )
     # logger.debug(result)
-    logger.debug(
-        f"{sum(np.isclose(result.x, np.zeros(problem_config.n), atol=1e-7))}"
-    )
+    logger.debug(f"{sum(np.isclose(result.x, np.zeros(problem_config.n), atol=1e-7))}")
 
     run.summary["status"] = result.status
     run.summary["success"] = result.success

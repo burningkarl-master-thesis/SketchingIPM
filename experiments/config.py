@@ -15,6 +15,7 @@ class Preconditioning(enum.Enum):
     QR = "qr"
     SPARSE_QR = "sparse_qr"
     CHOLESKY = "cholesky"
+    FULL_QR = "full_qr"
 
 
 class DaciteFromFile:
