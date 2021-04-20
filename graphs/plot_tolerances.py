@@ -147,16 +147,21 @@ def graph_accuracy_vs_time(ax, all_data, summary_data):
     filtered_data.loc[:, "accuracy"] = filtered_data.loc[
         :, ("best_rho_p", "best_rho_d", "best_rho_A")
     ].max(axis=1)
-    filtered_data.loc[:, "duration"] = filtered_data.loc[
-        :,
-        (
-            "generate_sketch_duration",
-            "sketching_duration",
-            "decomposition_duration",
-            "product_duration",
-            "solve_duration",
-        ),
-    ].sum(axis=1)
+    for name in np.unique(all_data["name"]):
+        filtered_data.loc[name, "duration"] = (
+            all_data.loc[
+                all_data["name"] == name,
+                (
+                    "generate_sketch_duration",
+                    "sketching_duration",
+                    "decomposition_duration",
+                    "product_duration",
+                    "solve_duration",
+                ),
+            ]
+            .sum(axis=1)
+            .mean(axis=0)
+        )
 
     ax.set(yscale="log")
     ax.set_ylim(bottom=sys.float_info.epsilon, top=3)
