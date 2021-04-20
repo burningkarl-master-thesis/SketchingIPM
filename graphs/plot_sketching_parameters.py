@@ -23,14 +23,14 @@ from plotting_utils import load_data, set_plot_aesthetics
 
 def graph1(ax, all_data, summary_data, s_colors):
     # Line plot
-    # x-axis: _step (0 ... 46)
+    # x-axis: _step
     # y-axis: condition_number_sketched
     # Show all trajectories for w_factor=2
     # Color differently depending on s
 
     # Filter the data
     filtered_data = all_data.loc[
-        (all_data["w_factor"] == 2), :
+        (all_data["w_factor"] == 2) & (all_data["_step"] < 120), :
     ].copy()
 
     # Include condition numbers without any preconditioning
