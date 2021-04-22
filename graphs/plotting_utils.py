@@ -22,7 +22,7 @@ def set_plot_aesthetics():
             "font.serif": "Computer Modern Roman",
             "text.usetex": True,
             "pgf.rcfonts": False,
-            "figure.figsize": [6.2 / 1.1, (6.2 / 1.1) * 2.6 / 4],
+            "figure.figsize": [6.1, 6.1 * 2.6 / 4],
         }
     )
 
