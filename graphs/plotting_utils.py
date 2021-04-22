@@ -13,16 +13,18 @@ dataframe_directory = pathlib.Path.cwd()
 
 
 def set_plot_aesthetics():
-    # matplotlib.use("pgf")
+    sns.set_theme("paper", "darkgrid")
+    matplotlib.use("pgf")
     matplotlib.rcParams.update(
         {
             "pgf.texsystem": "pdflatex",
             "font.family": "serif",
+            "font.serif": "Computer Modern Roman",
             "text.usetex": True,
             "pgf.rcfonts": False,
+            "figure.figsize": [6.2 / 1.1, (6.2 / 1.1) * 2.6 / 4],
         }
     )
-    sns.set_theme("paper", "darkgrid")
 
 
 def load_data(group):
