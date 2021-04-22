@@ -1,4 +1,6 @@
+import io
 import pathlib
+import re
 
 import matplotlib
 import pandas as pd
@@ -49,3 +51,13 @@ def load_data(group):
         logger.info(f"Saved to {all_data_filename} and {summary_data_filename}")
     logger.info("Done loading.")
     return all_data, summary_data
+
+
+def save_pgf(fig, filename):
+    """ Attempts to fix Dimension too large errors in log plots """
+    original = io.StringIO()
+    fig.savefig(original, format="pgf")
+
+    transformed = re.sub(r"{-\d+.\d+in}", r"{-1in}", original.getvalue())
+    with open(filename, "w") as f:
+        print(transformed, file=f)
