@@ -386,7 +386,7 @@
         },
         "seaborn": {
             "git": "https://github.com/mwaskom/seaborn",
-            "ref": "66b478390c20089de7f9644ba9965ce5d4f973ff"
+            "ref": "e04b07eb3df135511e71e556c2bd34ef59ba08ba"
         },
         "sentry-sdk": {
             "hashes": [
@@ -438,11 +438,11 @@
         },
         "wandb": {
             "hashes": [
-                "sha256:613f688df88818be972379f77c9c504d3258c40d27fa722442e7e8ce62b0d37e",
-                "sha256:dd41b6e6d27b3302561170025aaf7beb5a3dbb04c62660c95640f17854ab625d"
+                "sha256:1b6d3bbfd644183bbd79a02ff9e57e65a8a4f7c9b770af0d3c4f961ae6d7fc73",
+                "sha256:f591bb9d5c402ec5c12bd823db913d49ac31e4068f2c35c50b6f13e4fcd717b4"
             ],
             "index": "pypi",
-            "version": "==0.10.26"
+            "version": "==0.10.27"
         }
     },
     "develop": {}
