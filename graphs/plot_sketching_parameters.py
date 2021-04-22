@@ -21,7 +21,7 @@ from plotting_utils import load_data, set_plot_aesthetics, save_pgf
 #         confint[i].append(np.percentile(stat_data, (5, 95)))
 
 
-def graph1(ax, all_data, summary_data, s_colors):
+def graph_condition_number_history(ax, all_data, summary_data, s_colors):
     # Line plot
     # x-axis: _step
     # y-axis: condition_number_sketched
@@ -77,7 +77,7 @@ def graph1(ax, all_data, summary_data, s_colors):
     )
 
 
-def graph2(ax, all_data, summary_data, s_colors):
+def graph_condition_number(ax, all_data, summary_data, s_colors):
     # Boxplot
     # x-axis: w_factor -> s
     # y-axis: condition_number_sketched
@@ -113,7 +113,7 @@ def graph2(ax, all_data, summary_data, s_colors):
     )
 
 
-def graph3(ax, all_data, summary_data, s_colors):
+def graph_sparsity(ax, all_data, summary_data, s_colors):
     # Bar chart
     # x-axis: w_factor -> s
     # y-axis: density_sketched
@@ -149,7 +149,7 @@ def graph3(ax, all_data, summary_data, s_colors):
     ax.get_legend().remove()
 
 
-def graph4(ax, all_data, summary_data, s_colors, duration_field):
+def graph_duration(ax, all_data, summary_data, s_colors, duration_field):
     # Three bar charts
     # x-axis: w_factor -> s
     # y-axis: generate_sketch_duration, sketching_duration or
@@ -172,14 +172,7 @@ def graph4(ax, all_data, summary_data, s_colors, duration_field):
         palette=s_colors[2 : 2 + filtered_data.nunique()["s"]],
         ax=ax,
     )
-    ylabels = {
-        "generate_sketch_duration": r"Time to generate $\mathbf{W}$ [s]",
-        "sketching_duration": r"Time to multiply $\mathbf{W}$ and "
-        r"$\mathbf{D}\mathbf{A}^T$ [s]",
-        "decomposition_duration": r"Time to find $\mathbf{Q}\mathbf{R} = "
-        r"\mathbf{W}\mathbf{D}\mathbf{A}^T$ [s]",
-    }
-    ax.set(xlabel="$w/m$", ylabel=ylabels[duration_field])
+    ax.set(xlabel="$w/m$", ylabel="Time [s]")
     ax.get_legend().remove()
 
 
@@ -192,23 +185,23 @@ def main(args):
     all_data, summary_data = load_data(args.group)
 
     fig, ax = plt.subplots()
-    graph1(ax, all_data, summary_data, s_colors)
-    save_pgf(fig, "sketching_parameters_00.pgf")
+    graph_condition_number_history(ax, all_data, summary_data, s_colors)
+    save_pgf(fig, "sketching_parameters_condition_number_history.pgf")
     fig, ax = plt.subplots()
-    graph2(ax, all_data, summary_data, s_colors)
-    save_pgf(fig, "sketching_parameters_01.pgf")
+    graph_condition_number(ax, all_data, summary_data, s_colors)
+    save_pgf(fig, "sketching_parameters_condition_number.pgf")
     fig, ax = plt.subplots()
-    graph3(ax, all_data, summary_data, s_colors)
-    save_pgf(fig, "sketching_parameters_02.pgf")
+    graph_sparsity(ax, all_data, summary_data, s_colors)
+    save_pgf(fig, "sketching_parameters_sparsity.pgf")
     fig, ax = plt.subplots()
-    graph4(ax, all_data, summary_data, s_colors, "generate_sketch_duration")
-    save_pgf(fig, "sketching_parameters_10.pgf")
+    graph_duration(ax, all_data, summary_data, s_colors, "generate_sketch_duration")
+    save_pgf(fig, "sketching_parameters_generate_sketch_duration.pgf")
     fig, ax = plt.subplots()
-    graph4(ax, all_data, summary_data, s_colors, "sketching_duration")
-    save_pgf(fig, "sketching_parameters_11.pgf")
+    graph_duration(ax, all_data, summary_data, s_colors, "sketching_duration")
+    save_pgf(fig, "sketching_parameters_sketching_duration.pgf")
     fig, ax = plt.subplots()
-    graph4(ax, all_data, summary_data, s_colors, "decomposition_duration")
-    save_pgf(fig, "sketching_parameters_12.pgf")
+    graph_duration(ax, all_data, summary_data, s_colors, "decomposition_duration")
+    save_pgf(fig, "sketching_parameters_decomposition_duration.pgf")
 
 
 if __name__ == "__main__":
