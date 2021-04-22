@@ -198,8 +198,26 @@ def main(args):
     graph4(axes[1][0], all_data, summary_data, s_colors, "generate_sketch_duration")
     graph4(axes[1][1], all_data, summary_data, s_colors, "sketching_duration")
     graph4(axes[1][2], all_data, summary_data, s_colors, "decomposition_duration")
-    fig.savefig("sketching_parameters.pgf")
     fig.savefig("sketching_parameters.png")
+
+    fig, ax = plt.subplots()
+    graph1(ax, all_data, summary_data, s_colors)
+    fig.savefig("sketching_parameters_00.pgf")
+    fig, ax = plt.subplots()
+    graph2(ax, all_data, summary_data, s_colors)
+    fig.savefig("sketching_parameters_01.pgf")
+    fig, ax = plt.subplots()
+    graph3(ax, all_data, summary_data, s_colors)
+    fig.savefig("sketching_parameters_02.pgf")
+    fig, ax = plt.subplots()
+    graph4(ax, all_data, summary_data, s_colors, "generate_sketch_duration")
+    fig.savefig("sketching_parameters_10.pgf")
+    fig, ax = plt.subplots()
+    graph4(ax, all_data, summary_data, s_colors, "sketching_duration")
+    fig.savefig("sketching_parameters_11.pgf")
+    fig, ax = plt.subplots()
+    graph4(ax, all_data, summary_data, s_colors, "decomposition_duration")
+    fig.savefig("sketching_parameters_12.pgf")
 
 
 if __name__ == "__main__":
