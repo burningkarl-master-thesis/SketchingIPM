@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
-from plotting_utils import load_data, set_plot_aesthetics
+from plotting_utils import load_data, set_plot_aesthetics, save_pgf
 
 
 # To get the ci="decile" code working add the following code in
@@ -191,33 +191,24 @@ def main(args):
 
     all_data, summary_data = load_data(args.group)
 
-    fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(15, 10))
-    graph1(axes[0][0], all_data, summary_data, s_colors)
-    graph2(axes[0][1], all_data, summary_data, s_colors)
-    graph3(axes[0][2], all_data, summary_data, s_colors)
-    graph4(axes[1][0], all_data, summary_data, s_colors, "generate_sketch_duration")
-    graph4(axes[1][1], all_data, summary_data, s_colors, "sketching_duration")
-    graph4(axes[1][2], all_data, summary_data, s_colors, "decomposition_duration")
-    fig.savefig("sketching_parameters.png")
-
     fig, ax = plt.subplots()
     graph1(ax, all_data, summary_data, s_colors)
-    fig.savefig("sketching_parameters_00.pgf")
+    save_pgf(fig, "sketching_parameters_00.pgf")
     fig, ax = plt.subplots()
     graph2(ax, all_data, summary_data, s_colors)
-    fig.savefig("sketching_parameters_01.pgf")
+    save_pgf(fig, "sketching_parameters_01.pgf")
     fig, ax = plt.subplots()
     graph3(ax, all_data, summary_data, s_colors)
-    fig.savefig("sketching_parameters_02.pgf")
+    save_pgf(fig, "sketching_parameters_02.pgf")
     fig, ax = plt.subplots()
     graph4(ax, all_data, summary_data, s_colors, "generate_sketch_duration")
-    fig.savefig("sketching_parameters_10.pgf")
+    save_pgf(fig, "sketching_parameters_10.pgf")
     fig, ax = plt.subplots()
     graph4(ax, all_data, summary_data, s_colors, "sketching_duration")
-    fig.savefig("sketching_parameters_11.pgf")
+    save_pgf(fig, "sketching_parameters_11.pgf")
     fig, ax = plt.subplots()
     graph4(ax, all_data, summary_data, s_colors, "decomposition_duration")
-    fig.savefig("sketching_parameters_12.pgf")
+    save_pgf(fig, "sketching_parameters_12.pgf")
 
 
 if __name__ == "__main__":
