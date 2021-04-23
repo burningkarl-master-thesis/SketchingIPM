@@ -53,17 +53,14 @@ def graph_residual_norms(ax, all_data, summary_data):
         ci="decile",
         ax=ax,
     )
-    ax.set_ylim(bottom=sys.float_info.epsilon)
     ax.set(
         xlabel="",
         ylabel="Relative errors",
         xticklabels=[
-            r"$\left\| \mathbf{R}^{-T}\mathbf{A}\mathbf{D}^2\mathbf{A}^T"
-            r"\mathbf{R}^{-1} \tilde{\mathbf{x}} - \tilde{\mathbf{r}} \right\|_2"
-            r" / \left\| \tilde{\mathbf{r}} \right\|_2$",
-            r"$\left\| \mathbf{A}\mathbf{D}^2\mathbf{A}^T \mathbf{x}"
-            r" - \mathbf{r} \right\|_2"
-            r" / \left\| \mathbf{r} \right\|_2$",
+            r"$\mathbf{R}^{-T}\mathbf{A}\mathbf{D}^2\mathbf{A}^T"
+            r"\mathbf{R}^{-1} \tilde{\mathbf{q}} = \mathbf{R}^{-T} \mathbf{p}$",
+            r"$\mathbf{A}\mathbf{D}^2\mathbf{A}^T \Delta\mathbf{y}"
+            r" = \mathbf{p}$",
         ],
     )
     handles, labels = ax.get_legend_handles_labels()
@@ -71,7 +68,6 @@ def graph_residual_norms(ax, all_data, summary_data):
         title="CG iterations",
         handles=handles,
         labels=[r"$50$", r"$75$", r"$100$", r"125", r"Direct"],
-        loc="upper right",
     )
 
 
@@ -82,7 +78,10 @@ def graph_rho_p(ax, all_data, summary_data):
     # color: solver_maxiter
 
     # Filter the data
-    filtered_data = all_data.loc[(all_data["seed"] == 946047), :].copy()
+    filtered_data = all_data.loc[(all_data["seed"] == 946047) & (all_data["_step"] > 50), :].copy()
+    filtered_data.loc[:, "accuracy"] = filtered_data.loc[
+        :, ("rho_p", "rho_d", "rho_A")
+    ].max(axis=1)
 
     ax.set(yscale="log")
     sns.lineplot(
@@ -90,51 +89,23 @@ def graph_rho_p(ax, all_data, summary_data):
         estimator=np.median,
         errorbar=("pi", 90),  # 100% interval = min/max values
         x="_step",
-        y="rho_p",
+        y="accuracy",
         hue="solver_maxiter",
         palette=sns.color_palette()[: filtered_data.nunique()["solver_maxiter"]],
         ax=ax,
     )
-    ax.set_ylim(bottom=sys.float_info.epsilon, top=3)
+    # ax.set_ylim(bottom=1e-11, top=3)
     ax.set(
         title="",
         xlabel="IPM iteration",
-        ylabel=r"$\left\|\mathbf{r}_{p}^k\right\|_2 / \left\| \mathbf{r}_p^0 \right\|_2$",
+        ylabel=r"$\rho_{\mathrm{tol}}$",
     )
-    ax.get_legend().remove()
-
-
-def graph_accuracy_distribution(ax, all_data, summary_data):
-    # Box plot
-    # x-axis: solver_maxiter
-    # y-axis: rho_p
-    # color: solver_maxiter
-
-    filtered_data = summary_data.copy()
-    filtered_data.loc[:, "accuracy"] = filtered_data.loc[
-        :, ("best_rho_p", "best_rho_d", "best_rho_A")
-    ].max(axis=1)
-
-    ax.set(yscale="log")
-    sns.barplot(
-        data=filtered_data.reset_index(),
-        x="solver_maxiter",
-        hue="solver_maxiter",
-        dodge=False,
-        y="accuracy",
-        estimator=np.median,
-        ci="decile",
-        # whis=float("inf"),
-        ax=ax,
+    handles, labels = ax.get_legend_handles_labels()
+    ax.legend(
+        title="CG iterations",
+        handles=handles,
+        labels=[r"$50$", r"$75$", r"$100$", r"125", r"Direct"],
     )
-    ax.set_ylim(bottom=sys.float_info.epsilon, top=3)
-    ax.set(
-        title="",
-        xlabel="CG iterations",
-        xticklabels=[r"$50$", r"$75$", r"$100$", r"125", r"Direct"],
-        ylabel=r"Accuracy (best iteration)",
-    )
-    ax.get_legend().remove()
 
 
 def graph_accuracy_vs_time(ax, all_data, summary_data):
@@ -164,7 +135,6 @@ def graph_accuracy_vs_time(ax, all_data, summary_data):
         )
 
     ax.set(yscale="log")
-    ax.set_ylim(bottom=sys.float_info.epsilon, top=3)
     sns.scatterplot(
         data=filtered_data.reset_index(),
         x="duration",
@@ -173,12 +143,18 @@ def graph_accuracy_vs_time(ax, all_data, summary_data):
         palette=sns.color_palette()[: filtered_data.nunique()["solver_maxiter"]],
         ax=ax,
     )
+    # ax.set_ylim(bottom=1e-11, top=3)
     ax.set(
         title="",
-        xlabel="Time per IPM iteration [s]",
-        ylabel="Accuracy (best iteration)",
+        xlabel="Average time per IPM iteration [s]",
+        ylabel=r"$\rho_{\mathrm{tol}}$ (best iteration)",
     )
-    ax.get_legend().remove()
+    handles, labels = ax.get_legend_handles_labels()
+    ax.legend(
+        title="CG iterations",
+        handles=handles,
+        labels=[r"$50$", r"$75$", r"$100$", r"125", r"Direct"],
+    )
 
 
 def main(args):
@@ -187,11 +163,15 @@ def main(args):
     all_data, summary_data = load_data(args.group)
     all_data = all_data.where(all_data != "NaN")
 
+    rho_tol_limits = (1e-11, 12)
+
     fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(15, 5))
     graph_residual_norms(axes[0], all_data, summary_data)
     # graph_accuracy_distribution(axes[1], all_data, summary_data)
     graph_rho_p(axes[1], all_data, summary_data)
+    axes[1].set_ylim(rho_tol_limits)
     graph_accuracy_vs_time(axes[2], all_data, summary_data)
+    axes[2].set_ylim(rho_tol_limits)
 
     fig.savefig("tolerances.pgf")
     fig.savefig("tolerances.png")
