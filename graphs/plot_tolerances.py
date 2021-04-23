@@ -65,7 +65,7 @@ def graph_residual_norms(ax, all_data, summary_data):
     ax.legend(
         title="CG iterations",
         handles=handles,
-        labels=[r"$50$", r"$75$", r"$100$", r"125", r"Direct"],
+        labels=[r"$50$", r"$75$", r"$100$", r"125", r"Cholesky"],
     )
 
 
@@ -104,7 +104,7 @@ def graph_accuracy_history(ax, all_data, summary_data):
     ax.legend(
         title="CG iterations",
         handles=handles,
-        labels=[r"$50$", r"$75$", r"$100$", r"125", r"Direct"],
+        labels=[r"$50$", r"$75$", r"$100$", r"125", r"Cholesky"],
     )
 
 
@@ -153,7 +153,7 @@ def graph_accuracy_vs_time(ax, all_data, summary_data):
     ax.legend(
         title="CG iterations",
         handles=handles,
-        labels=[r"$50$", r"$75$", r"$100$", r"125", r"Direct"],
+        labels=[r"$50$", r"$75$", r"$100$", r"125", r"Cholesky"],
     )
 
 

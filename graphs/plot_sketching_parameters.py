@@ -146,7 +146,13 @@ def graph_sparsity(ax, all_data, summary_data, s_colors):
         xlabel="$w/m$",
         ylabel=r"$\mathrm{nnz}\left(\mathbf{W}\mathbf{D}\mathbf{A}^T\right)$",
     )
-    ax.get_legend().remove()
+    handles, labels = ax.get_legend_handles_labels()
+    ax.legend(
+        title="Preconditioning",
+        handles=handles,
+        labels=["$s = 3$", "$s = 4$", "$s=5$"],
+        loc="lower right",
+    )
 
 
 def graph_duration(ax, all_data, summary_data, s_colors, duration_field):
@@ -173,7 +179,13 @@ def graph_duration(ax, all_data, summary_data, s_colors, duration_field):
         ax=ax,
     )
     ax.set(xlabel="$w/m$", ylabel="Time [s]")
-    ax.get_legend().remove()
+    handles, labels = ax.get_legend_handles_labels()
+    ax.legend(
+        title="Preconditioning",
+        handles=handles,
+        labels=["$s = 3$", "$s = 4$", "$s=5$"],
+        loc="lower right",
+    )
 
 
 def main(args):
