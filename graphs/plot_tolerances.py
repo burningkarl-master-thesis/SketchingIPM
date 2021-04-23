@@ -175,7 +175,7 @@ def main(args):
     fig, ax = plt.subplots()
     graph_accuracy_vs_time(ax, all_data, summary_data)
     ax.set_ylim(rho_tol_limits)
-    save_pgf(fig, "tolerances_accuracy_vs_time.pgf")
+    save_pgf(fig, "tolerances_accuracy_vs_time.pgf", fix_negative=False)
 
 
 if __name__ == "__main__":

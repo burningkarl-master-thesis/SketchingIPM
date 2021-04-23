@@ -55,11 +55,15 @@ def load_data(group):
     return all_data, summary_data
 
 
-def save_pgf(fig, filename):
+def save_pgf(fig, filename, fix_negative=True):
     """ Attempts to fix Dimension too large errors in log plots """
     original = io.StringIO()
     fig.savefig(original, format="pgf")
 
-    transformed = re.sub(r"{-\d+.\d+in}", r"{-1in}", original.getvalue())
+    transformed = (
+        re.sub(r"{-\d+.\d+in}", r"{-1in}", original.getvalue())
+        if fix_negative
+        else original.getvalue()
+    )
     with open(filename, "w") as f:
         print(transformed, file=f)
