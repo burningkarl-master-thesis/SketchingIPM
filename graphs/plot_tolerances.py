@@ -6,14 +6,13 @@ __author__ = "Karl Welzel"
 __license__ = "GPLv3"
 
 import argparse
-import sys
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
 
-from plotting_utils import load_data, set_plot_aesthetics
+from plotting_utils import load_data, set_plot_aesthetics, save_pgf
 
 
 # To get the ci="decile" code working add the following code in
@@ -59,8 +58,7 @@ def graph_residual_norms(ax, all_data, summary_data):
         xticklabels=[
             r"$\mathbf{R}^{-T}\mathbf{A}\mathbf{D}^2\mathbf{A}^T"
             r"\mathbf{R}^{-1} \tilde{\mathbf{q}} = \mathbf{R}^{-T} \mathbf{p}$",
-            r"$\mathbf{A}\mathbf{D}^2\mathbf{A}^T \Delta\mathbf{y}"
-            r" = \mathbf{p}$",
+            r"$\mathbf{A}\mathbf{D}^2\mathbf{A}^T \Delta\mathbf{y}" r" = \mathbf{p}$",
         ],
     )
     handles, labels = ax.get_legend_handles_labels()
@@ -71,14 +69,16 @@ def graph_residual_norms(ax, all_data, summary_data):
     )
 
 
-def graph_rho_p(ax, all_data, summary_data):
+def graph_accuracy_history(ax, all_data, summary_data):
     # Line plot
     # x-axis: _step
     # y-axis: rho_p
     # color: solver_maxiter
 
     # Filter the data
-    filtered_data = all_data.loc[(all_data["seed"] == 946047) & (all_data["_step"] > 50), :].copy()
+    filtered_data = all_data.loc[
+        (all_data["seed"] == 946047) & (all_data["_step"] > 50), :
+    ].copy()
     filtered_data.loc[:, "accuracy"] = filtered_data.loc[
         :, ("rho_p", "rho_d", "rho_A")
     ].max(axis=1)
@@ -165,16 +165,17 @@ def main(args):
 
     rho_tol_limits = (1e-11, 12)
 
-    fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(15, 5))
-    graph_residual_norms(axes[0], all_data, summary_data)
-    # graph_accuracy_distribution(axes[1], all_data, summary_data)
-    graph_rho_p(axes[1], all_data, summary_data)
-    axes[1].set_ylim(rho_tol_limits)
-    graph_accuracy_vs_time(axes[2], all_data, summary_data)
-    axes[2].set_ylim(rho_tol_limits)
-
-    fig.savefig("tolerances.pgf")
-    fig.savefig("tolerances.png")
+    fig, ax = plt.subplots()
+    graph_residual_norms(ax, all_data, summary_data)
+    save_pgf(fig, "tolerances_residual_norms.pgf")
+    fig, ax = plt.subplots()
+    graph_accuracy_history(ax, all_data, summary_data)
+    ax.set_ylim(rho_tol_limits)
+    save_pgf(fig, "tolerances_accuracy_history.pgf")
+    fig, ax = plt.subplots()
+    graph_accuracy_vs_time(ax, all_data, summary_data)
+    ax.set_ylim(rho_tol_limits)
+    save_pgf(fig, "tolerances_accuracy_vs_time.pgf")
 
 
 if __name__ == "__main__":
