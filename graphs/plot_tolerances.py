@@ -122,7 +122,7 @@ def graph_accuracy_vs_time(ax, all_data, summary_data):
     # y-axis: time per iteration
     # color: solver_maxiter
 
-    filtered_data = summary_data.copy()
+    filtered_data = summary_data.loc[summary_data["solver_maxiter"] < 1000, :].copy()
     filtered_data.loc[:, "accuracy"] = filtered_data.loc[
         :, ("best_rho_p", "best_rho_d", "best_rho_A")
     ].max(axis=1)
@@ -151,6 +151,7 @@ def graph_accuracy_vs_time(ax, all_data, summary_data):
         palette=sns.color_palette()[: filtered_data.nunique()["solver_maxiter"]],
         ax=ax,
     )
+    ax.set_xlim(left=0)
     # ax.set_ylim(bottom=1e-11, top=3)
     ax.set(
         title="",
@@ -161,7 +162,7 @@ def graph_accuracy_vs_time(ax, all_data, summary_data):
     ax.legend(
         title="CG iterations",
         handles=handles,
-        labels=[r"$50$", r"$75$", r"$100$", r"125", r"Cholesky"],
+        labels=[r"$50$", r"$75$", r"$100$", r"125"],
     )
 
 
