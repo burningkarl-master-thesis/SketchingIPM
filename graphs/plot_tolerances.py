@@ -34,13 +34,21 @@ def graph_residual_norms(ax, all_data, summary_data):
             :,
         ]
 
-    filtered_data_1 = filtered_data.copy()
-    filtered_data_1.loc[:, "residual"] = filtered_data_1.loc[:, "residual[0]"]
-    filtered_data_1.loc[:, "residual_type"] = "preconditioned"
-    filtered_data_2 = filtered_data.copy()
-    filtered_data_2.loc[:, "residual"] = filtered_data_2.loc[:, "residual_M[0]"]
-    filtered_data_2.loc[:, "residual_type"] = "normal"
-    filtered_data = pd.concat([filtered_data_1, filtered_data_2])
+    filtered_data_10 = filtered_data.copy()
+    filtered_data_10.loc[:, "residual"] = filtered_data_10.loc[:, "residual[0]"]
+    filtered_data_10.loc[:, "residual_type"] = "preconditioned"
+    filtered_data_11 = filtered_data.copy()
+    filtered_data_11.loc[:, "residual"] = filtered_data_11.loc[:, "residual[1]"]
+    filtered_data_11.loc[:, "residual_type"] = "preconditioned"
+    filtered_data_20 = filtered_data.copy()
+    filtered_data_20.loc[:, "residual"] = filtered_data_20.loc[:, "residual_M[0]"]
+    filtered_data_20.loc[:, "residual_type"] = "normal"
+    filtered_data_21 = filtered_data.copy()
+    filtered_data_21.loc[:, "residual"] = filtered_data_21.loc[:, "residual_M[0]"]
+    filtered_data_21.loc[:, "residual_type"] = "normal"
+    filtered_data = pd.concat(
+        [filtered_data_10, filtered_data_11, filtered_data_20, filtered_data_21]
+    )
 
     ax.set(yscale="log")
     sns.barplot(
