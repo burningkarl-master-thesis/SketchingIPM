@@ -1,0 +1,35 @@
+{
+  "number_of_runs": 1,
+  "group": "ipm_breakdown",
+  "problem_config_product": {
+    "m": [1000],
+    "n": [100000],
+    "nnz_per_column": [1],
+    "seed": [318400, 318401],
+    "mu_min_exponent": [-10],
+    "mu_max_exponent": [0],
+    "mu_steps": [20]
+  },
+  "sketching_config_product": {
+    "w_factor": [2],
+    "s": [10]
+  },
+  "preconditioning_config_product": {
+    "preconditioning": ["qr"]
+  },
+  "ipm_config_product": {
+    "sparse": [true],
+    "symmetric_positive_definite": [true],
+    "iterative": [true],
+    "linear_operators": [false],
+    "triangular_solve": [false],
+    "solver_relative_tolerance": [1e-8, 1e-10, 1e-12],
+    "solver_absolute_tolerance": [0],
+    
+    "predictor_corrector": [true, false],
+    "presolve": [false],
+    "autoscale": [false],
+    "tolerance": [1e-8],
+    "maxiter": [60]
+  }
+}

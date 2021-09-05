@@ -1,0 +1,19 @@
+{
+  "number_of_runs": 5,
+  "group": "density_comparisons",
+  "problem_config_product": {
+    "m": [1000],
+    "n": [100000],
+    "nnz_factor": [0, 2, 10],
+    "mu_min_exponent": [-12],
+    "mu_max_exponent": [0],
+    "mu_steps": [10]
+  },
+  "sketching_config_product": {
+    "w_factor": [2],
+    "s": [3]
+  },
+  "preconditioning_config_product": {
+    "preconditioning": ["none", "qr", "sparse_qr"]
+  }
+}
